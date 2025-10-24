@@ -1,0 +1,682 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+h1 {
+    color: #333;
+    font-size: 2em;
+}
+
+.mode-switch {
+    display: flex;
+    gap: 10px;
+}
+
+.speech-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.mode-btn {
+    padding: 10px 20px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.mode-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.speech-btn {
+    padding: 10px 20px;
+    border: 2px solid #10b981;
+    background: white;
+    color: #10b981;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.speech-btn:hover {
+    background: #10b981;
+    color: white;
+}
+
+.speech-btn.active {
+    background: #10b981;
+    color: white;
+}
+
+.speech-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #ccc;
+    color: #ccc;
+}
+
+.speech-btn.disabled:hover {
+    background: white;
+    color: #ccc;
+}
+
+.speech-icon {
+    font-size: 1.2em;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 250px 1fr 250px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.left-panel, .right-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.left-panel h2, .right-panel h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.lection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.select-up-to-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.select-up-to-btn:hover {
+    background: linear-gradient(135deg, #5568d3, #633a8a);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+}
+
+.center-panel {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+}
+
+.card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.vocabulary-card {
+    width: 100%;
+    max-width: 700px;
+    min-height: 300px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 50px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    position: relative;
+}
+
+.vocabulary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.vocabulary-card:active {
+    transform: translateY(-2px);
+}
+
+.progress-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(16, 185, 129, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
+}
+
+.question-text {
+    font-size: 2.2em;
+    font-weight: 600;
+    text-align: center;
+    word-wrap: break-word;
+    line-height: 1.3;
+}
+
+.answer-section {
+    width: 100%;
+    padding-top: 25px;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.answer-text {
+    font-size: 1.7em;
+    text-align: center;
+    opacity: 0.95;
+    line-height: 1.3;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.card-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+}
+
+.card-btn {
+    flex: 1;
+    height: 60px;
+    border: none;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 0;
+}
+
+.wrong-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border-radius: 0 0 0 20px;
+}
+
+.wrong-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-2px);
+}
+
+.correct-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-radius: 0 0 20px 0;
+}
+
+.correct-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+}
+
+.btn-icon {
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.btn-skip {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+}
+
+.btn-skip:hover {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+}
+
+.skip-icon {
+    font-size: 1.3em;
+    transition: transform 0.3s ease;
+}
+
+.btn-skip:hover .skip-icon {
+    transform: translateX(3px);
+}
+
+.stats {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.speech-settings {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.speech-settings h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.speech-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.speech-setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-label {
+    font-size: 0.95em;
+    color: #555;
+    font-weight: 500;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 26px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #10b981;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* Volume Slider */
+.volume-slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #d3d3d3;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    background: #059669;
+    transform: scale(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    background: #059669;
+    transform: scale(1.2);
+}
+
+.volume-value {
+    min-width: 45px;
+    text-align: right;
+    font-weight: 600;
+    color: #10b981;
+    font-size: 0.9em;
+}
+
+/* Selection Modes */
+.selection-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f9fafb;
+}
+
+.radio-label:hover:not(.disabled) {
+    background: #f3f4f6;
+}
+
+.radio-label.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.radio-label input[type="radio"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.radio-label.disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+.radio-label span {
+    font-size: 0.95em;
+    color: #333;
+}
+
+/* Spaced Repetition Info */
+.spaced-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f9ff;
+    border-radius: 8px;
+    border: 1px solid #bae6fd;
+}
+
+.spaced-info h3 {
+    color: #0369a1;
+    font-size: 1em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.phase-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: white;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.phase-number {
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.phase-interval {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Progress Stats */
+.progress-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.9em;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.1em;
+}
+
+.skip-day-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.skip-day-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.reset-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Lection Controls */
+.lection-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.selection-btn {
+    flex: 1;
+    padding: 8px;
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.selection-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-icon {
+    font-size: 1.1em;
+}
+
+.lection-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.lection-item:hover {
+    background: #f3f4f6;
+}
+
+.lection-item input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.lection-item label {
+    flex: 1;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #333;
+}

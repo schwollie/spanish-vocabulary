@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Vocabulary Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Spanish Vocabulary Trainer</h1>
+            <div class="header-controls">
+                <div class="mode-switch">
+                    <button id="spanishToGerman" class="mode-btn active">ES → DE</button>
+                    <button id="germanToSpanish" class="mode-btn">DE → ES</button>
+                    <button id="randomMode" class="mode-btn">Random</button>
+                </div>
+                <div class="speech-controls">
+                    <button id="speechBtn" class="speech-btn" title="Text-to-Speech">
+                        <span class="speech-icon">🔊</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="left-panel">
+                <h2>Select Lections</h2>
+                <div class="lection-controls">
+                    <button id="selectAllBtn" class="selection-btn">
+                        <span class="btn-icon">☑</span>
+                        <span>Select All</span>
+                    </button>
+                    <button id="clearAllBtn" class="selection-btn">
+                        <span class="btn-icon">☐</span>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+                <div id="lectionList" class="lection-list">
+                    <!-- Lections will be loaded here dynamically -->
+                </div>
+            </aside>
+
+            <main class="center-panel">
+                <div class="card-container">
+                    <div class="vocabulary-card" id="vocabCard">
+                        <div class="progress-badge" id="progressBadge" style="display: none;">
+                            <span id="progressCount">Phase 0</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="question-text" id="questionText">
+                                Tap the card to start
+                            </div>
+                            <div class="answer-section" id="answerSection" style="display: none;">
+                                <div class="answer-text" id="answerText"></div>
+                            </div>
+                        </div>
+                        <div class="card-controls" id="cardControls" style="display: none;">
+                            <button id="wrongBtn" class="card-btn wrong-btn">
+                                <span class="btn-icon">✗</span>
+                                <span class="btn-text">Wrong</span>
+                            </button>
+                            <button id="correctBtn" class="card-btn correct-btn">
+                                <span class="btn-icon">✓</span>
+                                <span class="btn-text">Correct</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button id="skipBtn" class="btn btn-skip">
+                            <span>Skip</span>
+                            <span class="skip-icon">→</span>
+                        </button>
+                    </div>
+                    <div class="stats">
+                        <span id="vocabCount">0 vocabularies loaded</span>
+                    </div>
+                    
+                    <!-- Speech Settings -->
+                    <div class="speech-settings">
+                        <h3>🔊 Speech Settings</h3>
+                        <div class="speech-setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="speechEnabled" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="setting-label">Auto-play Spanish</span>
+                        </div>
+                        <div class="speech-setting-item">
+                            <label for="speechVolume" class="setting-label">Volume</label>
+                            <input type="range" id="speechVolume" min="0" max="100" value="80" class="volume-slider">
+                            <span class="volume-value" id="volumeValue">80%</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <aside class="right-panel">
+                <h2>Selection Mode</h2>
+                <div class="selection-modes">
+                    <label class="radio-label">
+                        <input type="radio" name="selectionMode" value="random" checked>
+                        <span>Random</span>
+                    </label>
+                    <label class="radio-label disabled">
+                        <input type="radio" name="selectionMode" value="sequential" disabled>
+                        <span>Sequential (Coming Soon)</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="selectionMode" value="spaced">
+                        <span>Spaced Repetition</span>
+                    </label>
+                </div>
+                
+                <div class="spaced-info">
+                    <h3>📅 Spaced Repetition Phases</h3>
+                    <div class="phase-list">
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 0:</span>
+                            <span class="phase-interval">Immediate</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 1:</span>
+                            <span class="phase-interval">1 day</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 2:</span>
+                            <span class="phase-interval">3 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 3:</span>
+                            <span class="phase-interval">7 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 4:</span>
+                            <span class="phase-interval">14 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 5:</span>
+                            <span class="phase-interval">29 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 6:</span>
+                            <span class="phase-interval">50 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 7:</span>
+                            <span class="phase-interval">70 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 8:</span>
+                            <span class="phase-interval">100 days</span>
+                        </div>
+                        <div class="phase-item">
+                            <span class="phase-number">Phase 9+:</span>
+                            <span class="phase-interval">300 days</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 20px;">Learning Progress</h2>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Learned:</span>
+                        <span class="stat-value" id="totalLearned">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Reviews:</span>
+                        <span class="stat-value" id="totalReviews">0</span>
+                    </div>
+                    <button id="skipOneDayBtn" class="skip-day-btn" title="Advance all review dates by 1 day">⏩ Skip 1 Day</button>
+                    <button id="resetProgressBtn" class="reset-btn">Reset Progress</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Load modules in order: storage, lections, vocabulary, speech, then main app -->
+    <script src="scripts/storage.js"></script>
+    <script src="scripts/lections.js"></script>
+    <script src="scripts/vocabulary.js"></script>
+    <script src="scripts/speech.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
