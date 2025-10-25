@@ -29,7 +29,7 @@ function initGoogleDriveSync() {
         syncState.lastSyncTime = new Date(lastSync);
     }
     
-    // Setup auto-sync interval (every 5 minutes)
+    // Setup auto-sync interval (every 2 minutes as backup)
     if (syncState.autoSyncTimer) {
         clearInterval(syncState.autoSyncTimer);
     }
@@ -39,6 +39,26 @@ function initGoogleDriveSync() {
             autoSyncToGoogleDrive();
         }
     }, SYNC_CONFIG.AUTO_SYNC_INTERVAL);
+    
+    // INSTANT SYNC: Check for updates when page becomes visible/focused
+    // This makes cross-device sync feel instant!
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && isGoogleAuthenticated()) {
+            console.log('📱 Page became visible - checking for updates...');
+            setTimeout(() => {
+                syncFromGoogleDriveEnhanced(true); // Silent check
+            }, 500); // Small delay to avoid race conditions
+        }
+    });
+    
+    window.addEventListener('focus', () => {
+        if (isGoogleAuthenticated()) {
+            console.log('🔍 Window focused - checking for updates...');
+            setTimeout(() => {
+                syncFromGoogleDriveEnhanced(true); // Silent check
+            }, 500);
+        }
+    });
     
     // Sync on page unload (closing/leaving page)
     window.addEventListener('beforeunload', () => {
