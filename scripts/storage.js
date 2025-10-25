@@ -45,11 +45,10 @@ function saveLearningProgress() {
     try {
         const progressData = JSON.stringify(state.learningProgress);
         localStorage.setItem('vocabularyProgress', progressData);
-        localStorage.setItem('lastSyncTime', new Date().toISOString());
         
-        // Trigger auto-sync if Google is connected (will be handled by sync module)
-        if (typeof autoSyncToGoogleDrive === 'function' && isGoogleAuthenticated && isGoogleAuthenticated()) {
-            // Debounced sync will happen via interval
+        // Mark data as modified for sync
+        if (typeof markLocalDataAsModified === 'function') {
+            markLocalDataAsModified();
         }
     } catch (e) {
         console.error('Error saving learning progress:', e);

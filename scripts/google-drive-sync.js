@@ -5,7 +5,7 @@
 const SYNC_CONFIG = {
     FILENAME: 'spanish-vocabulary-data.json',
     FOLDER_NAME: 'Spanish Vocabulary Trainer',
-    AUTO_SYNC_INTERVAL: 5 * 60 * 1000, // 5 minutes in milliseconds
+    AUTO_SYNC_INTERVAL: 2 * 60 * 1000, // 2 minutes - faster sync for cross-device
     MIME_TYPE: 'application/json'
 };
 
@@ -76,6 +76,21 @@ function isLikelyNewDevice() {
     return (!hasLocalLections || hasOnlyDefault) && !hasProgress && (!hasFileId || !hasLastSync);
 }
 
+// Helper function to mark local data as modified
+// Call this whenever lections or progress are changed locally
+function markLocalDataAsModified() {
+    const timestamp = new Date().toISOString();
+    localStorage.setItem('localDataTimestamp', timestamp);
+    console.log(`📝 Local data marked as modified at ${timestamp}`);
+    
+    // Trigger auto-sync after a short delay if signed in
+    if (isGoogleAuthenticated()) {
+        setTimeout(() => {
+            autoSyncToGoogleDrive();
+        }, 2000); // Wait 2 seconds before syncing
+    }
+}
+
 // Auto-sync to Google Drive (silent, no alerts)
 async function autoSyncToGoogleDrive() {
     if (syncState.isSyncing) return;
@@ -112,9 +127,12 @@ async function syncToGoogleDrive(silent = false) {
         const allLections = getAllLections();
         console.log(`📤 Preparing to sync ${allLections.length} lections to Drive`);
         
+        // Generate timestamp for this data modification
+        const dataTimestamp = new Date().toISOString();
+        
         const data = {
             version: '1.0',
-            lastModified: new Date().toISOString(),
+            lastModified: dataTimestamp,
             deviceInfo: {
                 userAgent: navigator.userAgent.substring(0, 100),
                 timestamp: Date.now(),
@@ -139,8 +157,12 @@ async function syncToGoogleDrive(silent = false) {
         // Upload data to Google Drive
         await updateFileInDrive(syncState.fileId, data);
         
+        // CRITICAL: Update both sync time AND data timestamp
         syncState.lastSyncTime = new Date();
         localStorage.setItem('lastSyncTime', syncState.lastSyncTime.toISOString());
+        localStorage.setItem('localDataTimestamp', dataTimestamp);
+        
+        console.log(`✅ Upload complete. Data timestamp: ${dataTimestamp}`);
         
         updateSyncStatusUI('synced');
         if (!silent) alert('✅ Synced to Google Drive successfully!');
@@ -198,26 +220,29 @@ async function syncFromGoogleDrive(silent = false) {
             return;
         }
         
-        // Compare timestamps and merge (newest wins)
-        const localLastModified = localStorage.getItem('lastSyncTime') || new Date(0).toISOString();
+        // Compare timestamps - use the data modification timestamp from Drive
+        const localDataTimestamp = localStorage.getItem('localDataTimestamp') || new Date(0).toISOString();
         const driveLastModified = driveData.lastModified || new Date(0).toISOString();
         
         const isNewDevice = isLikelyNewDevice();
         
         console.log('🕒 Sync timestamp comparison:', {
-            local: localLastModified,
-            drive: driveLastModified,
-            driveNewer: driveLastModified > localLastModified,
+            localData: localDataTimestamp,
+            driveData: driveLastModified,
+            driveNewer: driveLastModified > localDataTimestamp,
             isNewDevice,
             driveDevice: driveData.deviceInfo?.url || 'unknown',
             localLections: getAllLections().length,
             driveLections: driveData.lections?.length || 0
         });
         
-        // On new devices, ALWAYS prefer Drive data (even if timestamps are equal)
-        if (isNewDevice || driveLastModified > localLastModified) {
+        // CRITICAL FIX: Always check Drive data freshness, even if not a new device
+        // If Drive has newer data, always download it
+        if (isNewDevice || driveLastModified > localDataTimestamp) {
             // Drive data is newer, use it
             console.log('📥 Restoring newer data from Google Drive...');
+            console.log(`   Drive timestamp: ${driveLastModified}`);
+            console.log(`   Local timestamp: ${localDataTimestamp}`);
             
             // Restore lections properly
             if (driveData.lections && Array.isArray(driveData.lections)) {
@@ -247,9 +272,10 @@ async function syncFromGoogleDrive(silent = false) {
                 console.log('📊 Restored learning progress from Drive');
             }
             
-            // Update sync time
+            // CRITICAL: Store the Drive data timestamp as our local timestamp
+            localStorage.setItem('localDataTimestamp', driveLastModified);
             syncState.lastSyncTime = new Date(driveLastModified);
-            localStorage.setItem('lastSyncTime', driveLastModified);
+            localStorage.setItem('lastSyncTime', new Date().toISOString());
             
             if (!silent) {
                 alert('✅ Loaded newer data from Google Drive! Page will reload to apply changes.');
@@ -260,8 +286,8 @@ async function syncFromGoogleDrive(silent = false) {
                 setTimeout(() => location.reload(), 1000);
             }
         } else {
-            // Local data is newer or same, upload to Drive
-            console.log('📤 Local data is newer or same, uploading to Drive...');
+            // Local data is same or newer, upload to Drive
+            console.log('📤 Local data is same or newer, uploading to Drive...');
             await syncToGoogleDrive(true);
         }
         

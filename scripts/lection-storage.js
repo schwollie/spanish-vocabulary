@@ -26,6 +26,12 @@ function getAllLections() {
 function saveLectionToStorage(lection) {
     try {
         localStorage.setItem(`lection_${lection.id}`, JSON.stringify(lection));
+        
+        // Mark data as modified for sync
+        if (typeof markLocalDataAsModified === 'function') {
+            markLocalDataAsModified();
+        }
+        
         return true;
     } catch (e) {
         console.error('Error saving lection:', e);
@@ -42,6 +48,11 @@ function deleteLectionFromStorage(id) {
     const lectionOrder = JSON.parse(localStorage.getItem('lectionOrder') || '[]');
     const newOrder = lectionOrder.filter(lectionId => lectionId !== id);
     localStorage.setItem('lectionOrder', JSON.stringify(newOrder));
+    
+    // Mark data as modified for sync
+    if (typeof markLocalDataAsModified === 'function') {
+        markLocalDataAsModified();
+    }
 }
 
 // Get lection order
