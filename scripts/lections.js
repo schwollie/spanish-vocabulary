@@ -8,7 +8,8 @@ async function loadLections() {
     lectionList.innerHTML = '';
 
     // Initialize default lections if none exist
-    initializeDefaultLections();
+    // Skip if user is signed in - wait for Drive sync instead
+    initializeDefaultLections(true); // Pass true to skip if signed in
     
     // Get all lections from localStorage
     const lections = getAllLections();

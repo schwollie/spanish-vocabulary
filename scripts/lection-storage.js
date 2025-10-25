@@ -88,10 +88,18 @@ function vocabulariesToText(vocabularies) {
 }
 
 // Initialize with default lection if none exist
-function initializeDefaultLections() {
+// Now accepts a parameter to skip initialization if we expect data from Drive
+function initializeDefaultLections(skipIfSignedIn = false) {
+    // If user might have Drive data, don't create defaults yet
+    if (skipIfSignedIn && localStorage.getItem('googleAccessToken')) {
+        console.log('⏳ Skipping default lection creation - waiting for Drive sync');
+        return false; // Indicate that defaults were not created
+    }
+    
     const lections = getAllLections();
     
     if (lections.length === 0) {
+        console.log('📝 Creating default lection (no Drive data expected)');
         // Create default "Para Empezar" lection
         const defaultId = generateLectionId();
         const defaultLection = {
@@ -107,5 +115,8 @@ function initializeDefaultLections() {
         
         saveLectionToStorage(defaultLection);
         saveLectionOrder([defaultId]);
+        return true; // Indicate that defaults were created
     }
+    
+    return false; // Already had lections
 }

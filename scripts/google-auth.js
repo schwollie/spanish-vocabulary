@@ -119,9 +119,17 @@ async function validateAndRefreshToken() {
             updateGoogleAuthUI(true);
             console.log('Token validated. Signed in as:', googleAuth.user.email);
             
-            // Auto-sync on successful validation
-            if (typeof syncFromGoogleDrive === 'function') {
-                syncFromGoogleDrive(true); // silent mode
+            // Auto-sync on successful validation with delay to ensure everything is loaded
+            if (typeof syncFromGoogleDriveEnhanced === 'function') {
+                console.log('🔄 Starting cross-device sync check...');
+                setTimeout(() => {
+                    syncFromGoogleDriveEnhanced(true); // silent mode with device detection
+                }, 500); // Reduced delay to 500ms for faster sync
+            } else if (typeof syncFromGoogleDrive === 'function') {
+                console.log('🔄 Starting basic sync check...');
+                setTimeout(() => {
+                    syncFromGoogleDrive(true); // fallback to basic sync
+                }, 500);
             }
         } else if (response.status === 401) {
             // Token expired, need to re-authenticate
@@ -172,8 +180,10 @@ async function getUserInfo() {
             console.log('Signed in as:', googleAuth.user.email);
             
             // Auto-sync on sign-in
-            if (typeof syncFromGoogleDrive === 'function') {
-                syncFromGoogleDrive(true); // silent mode
+            if (typeof syncFromGoogleDriveEnhanced === 'function') {
+                syncFromGoogleDriveEnhanced(true); // silent mode with device detection
+            } else if (typeof syncFromGoogleDrive === 'function') {
+                syncFromGoogleDrive(true); // fallback to basic sync
             }
         } else if (response.status === 401) {
             console.log('Token expired during getUserInfo');
@@ -200,7 +210,9 @@ function clearAuthState() {
 // Sign in to Google
 function signInToGoogle() {
     if (googleAuth.tokenClient) {
-        googleAuth.tokenClient.requestAccessToken({ prompt: 'consent' });
+        // Don't use 'consent' prompt - it forces re-authorization every time
+        // Use empty object or 'select_account' for better UX
+        googleAuth.tokenClient.requestAccessToken({ prompt: '' });
     } else {
         alert('Google Sign-In is not initialized yet. Please try again in a moment.');
     }

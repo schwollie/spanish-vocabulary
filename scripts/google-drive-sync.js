@@ -49,6 +49,33 @@ function initGoogleDriveSync() {
     });
 }
 
+// Check if this appears to be a new device or fresh installation
+function isLikelyNewDevice() {
+    const lections = getAllLections();
+    const hasLocalLections = lections.length > 1; // More than just default
+    const hasProgress = Object.keys(state.learningProgress || {}).length > 0;
+    const hasFileId = !!localStorage.getItem('googleDriveFileId');
+    const hasLastSync = !!localStorage.getItem('lastSyncTime');
+    
+    // Check if we only have the default lection
+    const hasOnlyDefault = lections.length === 1 && 
+                          lections[0]?.name === 'Para Empezar' &&
+                          lections[0]?.vocabularies?.length === 4;
+    
+    console.log('🔍 Device detection:', {
+        lections: lections.length,
+        hasOnlyDefault,
+        hasProgress,
+        hasFileId,
+        hasLastSync,
+        isNew: (!hasLocalLections || hasOnlyDefault) && !hasProgress && (!hasFileId || !hasLastSync)
+    });
+    
+    // If we have very little local data but are signed into Google, 
+    // this might be a new device
+    return (!hasLocalLections || hasOnlyDefault) && !hasProgress && (!hasFileId || !hasLastSync);
+}
+
 // Auto-sync to Google Drive (silent, no alerts)
 async function autoSyncToGoogleDrive() {
     if (syncState.isSyncing) return;
@@ -81,13 +108,27 @@ async function syncToGoogleDrive(silent = false) {
             gapi.client.setToken({ access_token: googleAuth.accessToken });
         }
         
-        // Get current data
+        // Get current data with detailed logging
+        const allLections = getAllLections();
+        console.log(`📤 Preparing to sync ${allLections.length} lections to Drive`);
+        
         const data = {
             version: '1.0',
             lastModified: new Date().toISOString(),
-            lections: getAllLections(),
+            deviceInfo: {
+                userAgent: navigator.userAgent.substring(0, 100),
+                timestamp: Date.now(),
+                url: window.location.hostname
+            },
+            lections: allLections,
             progress: state.learningProgress
         };
+        
+        console.log('📊 Sync data summary:', {
+            lectionsCount: data.lections.length,
+            progressCount: Object.keys(data.progress).length,
+            lastModified: data.lastModified
+        });
         
         // Check if file exists
         if (!syncState.fileId) {
@@ -161,24 +202,66 @@ async function syncFromGoogleDrive(silent = false) {
         const localLastModified = localStorage.getItem('lastSyncTime') || new Date(0).toISOString();
         const driveLastModified = driveData.lastModified || new Date(0).toISOString();
         
-        if (driveLastModified > localLastModified) {
+        const isNewDevice = isLikelyNewDevice();
+        
+        console.log('🕒 Sync timestamp comparison:', {
+            local: localLastModified,
+            drive: driveLastModified,
+            driveNewer: driveLastModified > localLastModified,
+            isNewDevice,
+            driveDevice: driveData.deviceInfo?.url || 'unknown',
+            localLections: getAllLections().length,
+            driveLections: driveData.lections?.length || 0
+        });
+        
+        // On new devices, ALWAYS prefer Drive data (even if timestamps are equal)
+        if (isNewDevice || driveLastModified > localLastModified) {
             // Drive data is newer, use it
-            localStorage.setItem('lections', JSON.stringify(driveData.lections));
-            localStorage.setItem('vocabularyProgress', JSON.stringify(driveData.progress));
-            state.learningProgress = driveData.progress;
+            console.log('📥 Restoring newer data from Google Drive...');
             
+            // Restore lections properly
+            if (driveData.lections && Array.isArray(driveData.lections)) {
+                // Clear existing lections
+                const existingOrder = JSON.parse(localStorage.getItem('lectionOrder') || '[]');
+                existingOrder.forEach(id => {
+                    localStorage.removeItem(`lection_${id}`);
+                });
+                
+                // Restore lections and order from Drive
+                const newOrder = [];
+                driveData.lections.forEach(lection => {
+                    if (lection.id) {
+                        localStorage.setItem(`lection_${lection.id}`, JSON.stringify(lection));
+                        newOrder.push(lection.id);
+                    }
+                });
+                localStorage.setItem('lectionOrder', JSON.stringify(newOrder));
+                
+                console.log(`📚 Restored ${driveData.lections.length} lections from Drive`);
+            }
+            
+            // Restore progress
+            if (driveData.progress) {
+                localStorage.setItem('vocabularyProgress', JSON.stringify(driveData.progress));
+                state.learningProgress = driveData.progress;
+                console.log('📊 Restored learning progress from Drive');
+            }
+            
+            // Update sync time
             syncState.lastSyncTime = new Date(driveLastModified);
             localStorage.setItem('lastSyncTime', driveLastModified);
             
             if (!silent) {
-                alert('✅ Loaded newer data from Google Drive! Page will reload.');
+                alert('✅ Loaded newer data from Google Drive! Page will reload to apply changes.');
                 location.reload();
             } else {
                 // Silent reload for auto-sync
-                location.reload();
+                console.log('🔄 Auto-reloading to apply synced data...');
+                setTimeout(() => location.reload(), 1000);
             }
         } else {
             // Local data is newer or same, upload to Drive
+            console.log('📤 Local data is newer or same, uploading to Drive...');
             await syncToGoogleDrive(true);
         }
         
@@ -199,7 +282,33 @@ async function syncFromGoogleDrive(silent = false) {
         }
     } finally {
         syncState.isSyncing = false;
+        
+        // After sync completes, check if we need default lections
+        const lections = getAllLections();
+        if (lections.length === 0) {
+            console.log('📝 No lections after sync - creating defaults now');
+            initializeDefaultLections(false); // Force create defaults
+            // Reload the lections list
+            if (typeof loadLections === 'function') {
+                loadLections();
+            }
+        }
     }
+}
+
+// Enhanced sync from Google Drive with better new device detection
+async function syncFromGoogleDriveEnhanced(silent = false) {
+    if (!isGoogleAuthenticated()) {
+        if (!silent) alert('Please sign in to Google first.');
+        return;
+    }
+    
+    const isNewDevice = isLikelyNewDevice();
+    if (isNewDevice && !silent) {
+        console.log('🆕 New device detected - prioritizing Drive data');
+    }
+    
+    return syncFromGoogleDrive(silent);
 }
 
 // Find existing file or create new one
@@ -425,7 +534,8 @@ function handleManualSync() {
         return;
     }
     
-    syncFromGoogleDrive(false);
+    console.log('🔄 Manual sync requested');
+    syncFromGoogleDriveEnhanced(false);
 }
 
 // Call this function to initialize the Google Drive sync module
