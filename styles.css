@@ -667,6 +667,137 @@ input:checked + .slider:before {
     font-size: 1.1em;
 }
 
+/* Google Drive Sync Section */
+.google-sync-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 2px solid #4285f4;
+    color: #4285f4;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.google-btn:hover {
+    background: #4285f4;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.google-btn.signed-in {
+    background: linear-gradient(135deg, #34a853, #0f9d58);
+    color: white;
+    border-color: #34a853;
+}
+
+.google-btn.signed-in:hover {
+    background: linear-gradient(135deg, #0f9d58, #0a7e3e);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 0.85em;
+}
+
+.profile-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.user-email {
+    color: white;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sync-status {
+    padding: 8px;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sync-status.syncing {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.sync-status.synced {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.sync-status.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.last-sync-time {
+    text-align: center;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.sync-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: none; /* Hidden by default, shown when signed in */
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.sync-btn:hover {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.sync-info {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75em;
+    padding: 5px 0;
+}
+
 /* Lection Controls */
 .lection-controls {
     display: flex;

@@ -23,6 +23,14 @@ async function init() {
     setupSpeechListeners(); // Setup speech event listeners
     updateVocabularyCount();
     updateStatistics(); // Update statistics display
+    
+    // Initialize Google Drive sync
+    try {
+        await initGoogleAuth();
+        initGoogleDriveSync();
+    } catch (error) {
+        console.error('Failed to initialize Google Drive sync:', error);
+    }
 }
 
 // Setup all event listeners
@@ -81,6 +89,12 @@ function setupEventListeners() {
     document.getElementById('importAllBtn').addEventListener('click', importAllData);
     document.getElementById('exportProgressBtn').addEventListener('click', exportProgressOnly);
     document.getElementById('importProgressBtn').addEventListener('click', importProgressOnly);
+    
+    // Google Drive sync button
+    const manualSyncBtn = document.getElementById('manualSyncBtn');
+    if (manualSyncBtn) {
+        manualSyncBtn.addEventListener('click', handleManualSync);
+    }
 }
 
 // Start the app when page loads

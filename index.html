@@ -176,6 +176,24 @@
                     <button id="resetProgressBtn" class="reset-btn">Reset Progress</button>
                 </div>
                 
+                <h2 style="margin-top: 20px;">Google Drive Sync</h2>
+                <div class="google-sync-section">
+                    <button id="googleSignInBtn" class="google-btn">
+                        <span class="btn-icon">🔒</span>
+                        <span>Sign in with Google</span>
+                    </button>
+                    <div id="googleUserInfo" class="user-info" style="display: none;"></div>
+                    <div id="syncStatus" class="sync-status">📴 Not synced</div>
+                    <div id="lastSyncTime" class="last-sync-time"></div>
+                    <button id="manualSyncBtn" class="sync-btn" title="Manually sync now">
+                        <span class="btn-icon">🔄</span>
+                        <span>Sync Now</span>
+                    </button>
+                    <div class="sync-info">
+                        <small>Auto-syncs every 5 minutes and on page close</small>
+                    </div>
+                </div>
+                
                 <h2 style="margin-top: 20px;">Backup & Restore</h2>
                 <div class="backup-controls">
                     <button id="exportAllBtn" class="backup-btn" title="Export all data (lections + progress)">
@@ -199,12 +217,18 @@
         </div>
     </div>
 
-    <!-- Load modules in order: storage, lection-storage, lections, vocabulary, speech, then main app -->
+    <!-- Load Google API (new GIS library) -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Load modules in order: storage, lection-storage, lections, vocabulary, speech, google auth, google sync, then main app -->
     <script src="scripts/storage.js"></script>
     <script src="scripts/lection-storage.js"></script>
     <script src="scripts/lections.js"></script>
     <script src="scripts/vocabulary.js"></script>
     <script src="scripts/speech.js"></script>
+    <script src="scripts/google-auth.js"></script>
+    <script src="scripts/google-drive-sync.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
