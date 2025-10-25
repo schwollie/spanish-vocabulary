@@ -6,15 +6,30 @@ const SYNC_CONFIG = {
     FILENAME: 'spanish-vocabulary-data.json',
     FOLDER_NAME: 'Spanish Vocabulary Trainer',
     AUTO_SYNC_INTERVAL: 2 * 60 * 1000, // 2 minutes - faster sync for cross-device
-    MIME_TYPE: 'application/json'
+    MIME_TYPE: 'application/json',
+    // Rate limiting to prevent API quota issues
+    MIN_SYNC_INTERVAL: 30000, // Minimum 30 seconds between syncs
+    DEBOUNCE_DELAY: 2000, // Wait 2s after last change before syncing
+    // File ID caching
+    FILE_CACHE_DURATION: 5 * 60 * 1000 // 5 minutes
 };
 
 let syncState = {
     fileId: null,
     lastSyncTime: null,
     isSyncing: false,
-    autoSyncTimer: null
+    autoSyncTimer: null,
+    lastSyncAttempt: 0 // Track last sync attempt for rate limiting
 };
+
+// File ID caching
+let fileIdCache = {
+    id: null,
+    expiry: 0
+};
+
+// Debounce timer for sync operations
+let syncDebounceTimer = null;
 
 // Initialize sync system
 function initGoogleDriveSync() {
@@ -103,17 +118,40 @@ function markLocalDataAsModified() {
     localStorage.setItem('localDataTimestamp', timestamp);
     console.log(`📝 Local data marked as modified at ${timestamp}`);
     
-    // Trigger auto-sync after a short delay if signed in
+    // Use debounced sync to reduce API calls
     if (isGoogleAuthenticated()) {
-        setTimeout(() => {
-            autoSyncToGoogleDrive();
-        }, 2000); // Wait 2 seconds before syncing
+        debouncedSync();
     }
+}
+
+// Debounced sync - waits for changes to stop before syncing
+// This dramatically reduces API calls during active use
+function debouncedSync() {
+    clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => {
+        console.log('⏱️ Debounce timer completed, triggering sync...');
+        autoSyncToGoogleDrive();
+    }, SYNC_CONFIG.DEBOUNCE_DELAY);
 }
 
 // Auto-sync to Google Drive (silent, no alerts)
 async function autoSyncToGoogleDrive() {
-    if (syncState.isSyncing) return;
+    if (syncState.isSyncing) {
+        console.log('⏭️ Sync already in progress, skipping');
+        return;
+    }
+    
+    // Rate limiting check - prevent too frequent syncs
+    const now = Date.now();
+    const timeSinceLastSync = now - syncState.lastSyncAttempt;
+    
+    if (timeSinceLastSync < SYNC_CONFIG.MIN_SYNC_INTERVAL) {
+        const waitTime = Math.round((SYNC_CONFIG.MIN_SYNC_INTERVAL - timeSinceLastSync) / 1000);
+        console.log(`⏱️ Rate limiting: ${waitTime}s until next sync allowed`);
+        return;
+    }
+    
+    syncState.lastSyncAttempt = now;
     
     try {
         await syncToGoogleDrive(true); // silent = true
@@ -357,10 +395,41 @@ async function syncFromGoogleDriveEnhanced(silent = false) {
     return syncFromGoogleDrive(silent);
 }
 
-// Find existing file or create new one
+// Find existing file or create new one (with caching for performance)
 async function findOrCreateFile() {
+    const now = Date.now();
+    
+    // Check if we have a valid cached file ID
+    if (fileIdCache.id && now < fileIdCache.expiry) {
+        console.log('📋 Using cached file ID (saves API call)');
+        return fileIdCache.id;
+    }
+    
     try {
+        // Check localStorage first
+        const storedFileId = localStorage.getItem('googleDriveFileId');
+        if (storedFileId) {
+            try {
+                // Quick verification that file still exists
+                console.log('🔍 Verifying stored file ID...');
+                await gapi.client.drive.files.get({
+                    fileId: storedFileId,
+                    fields: 'id'
+                });
+                
+                console.log('✅ Stored file ID is valid');
+                // Cache it
+                fileIdCache.id = storedFileId;
+                fileIdCache.expiry = now + SYNC_CONFIG.FILE_CACHE_DURATION;
+                return storedFileId;
+            } catch (error) {
+                console.log('❌ Stored file ID invalid, will search for file...');
+                localStorage.removeItem('googleDriveFileId');
+            }
+        }
+        
         // Search for file
+        console.log('🔎 Searching Drive for sync file...');
         const response = await gapi.client.drive.files.list({
             q: `name='${SYNC_CONFIG.FILENAME}' and mimeType='${SYNC_CONFIG.MIME_TYPE}' and trashed=false`,
             spaces: 'drive',
@@ -370,12 +439,24 @@ async function findOrCreateFile() {
         if (response.result.files && response.result.files.length > 0) {
             // File exists
             const fileId = response.result.files[0].id;
+            console.log('✅ Found existing file on Drive');
             localStorage.setItem('googleDriveFileId', fileId);
+            
+            // Cache it
+            fileIdCache.id = fileId;
+            fileIdCache.expiry = now + SYNC_CONFIG.FILE_CACHE_DURATION;
+            
             return fileId;
         } else {
             // Create new file
+            console.log('📄 Creating new file on Drive...');
             const fileId = await createFileInDrive();
             localStorage.setItem('googleDriveFileId', fileId);
+            
+            // Cache it
+            fileIdCache.id = fileId;
+            fileIdCache.expiry = now + SYNC_CONFIG.FILE_CACHE_DURATION;
+            
             return fileId;
         }
     } catch (error) {
