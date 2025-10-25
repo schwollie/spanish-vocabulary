@@ -1,5 +1,5 @@
 // ============================================
-// STORAGE MODULE - Cookie Management & Learning Progress
+// STORAGE MODULE - LocalStorage Management & Learning Progress
 // ============================================
 
 // Spaced Repetition Intervals (phase -> days until next review)
@@ -21,31 +21,6 @@ function getIntervalForPhase(phase) {
     return SPACED_INTERVALS[phase] || 0;
 }
 
-// Cookie management functions
-function setCookie(name, value, days = 365) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
-}
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) {
-            return decodeURIComponent(c.substring(nameEQ.length, c.length));
-        }
-    }
-    return null;
-}
-
-function deleteCookie(name) {
-    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-}
-
 // Learning progress functions
 function getVocabKey(vocab) {
     // Create a unique key for the vocabulary
@@ -53,7 +28,7 @@ function getVocabKey(vocab) {
 }
 
 function loadLearningProgress() {
-    const progressData = getCookie('vocabularyProgress');
+    const progressData = localStorage.getItem('vocabularyProgress');
     if (progressData) {
         try {
             state.learningProgress = JSON.parse(progressData);
@@ -61,15 +36,21 @@ function loadLearningProgress() {
             console.error('Error loading learning progress:', e);
             state.learningProgress = {};
         }
+    } else {
+        state.learningProgress = {};
     }
 }
 
 function saveLearningProgress() {
     try {
         const progressData = JSON.stringify(state.learningProgress);
-        setCookie('vocabularyProgress', progressData, 365);
+        localStorage.setItem('vocabularyProgress', progressData);
     } catch (e) {
         console.error('Error saving learning progress:', e);
+        // Check if quota exceeded
+        if (e.name === 'QuotaExceededError') {
+            alert('Storage quota exceeded! Please export your data and clear some progress.');
+        }
     }
 }
 
@@ -132,11 +113,159 @@ function updateStatistics() {
 function resetLearningProgress() {
     if (confirm('Are you sure you want to reset all learning progress? This cannot be undone.')) {
         state.learningProgress = {};
-        deleteCookie('vocabularyProgress');
+        localStorage.removeItem('vocabularyProgress');
         updateStatistics();
         displayVocabulary(); // Refresh display to hide progress badge
         alert('Learning progress has been reset.');
     }
+}
+
+// ============================================
+// EXPORT / IMPORT FUNCTIONS
+// ============================================
+
+function exportAllData() {
+    try {
+        const exportData = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            lections: getAllLections(),
+            progress: state.learningProgress
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `spanish-vocabulary-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('Data exported successfully!');
+    } catch (e) {
+        console.error('Error exporting data:', e);
+        alert('Error exporting data: ' + e.message);
+    }
+}
+
+function importAllData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importData = JSON.parse(event.target.result);
+                
+                // Validate import data structure
+                if (!importData.version || !importData.lections || !importData.progress) {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                // Confirm before overwriting
+                if (!confirm('This will replace ALL current data (lections and progress). Continue?')) {
+                    return;
+                }
+                
+                // Import lections
+                localStorage.setItem('lections', JSON.stringify(importData.lections));
+                
+                // Import progress
+                localStorage.setItem('vocabularyProgress', JSON.stringify(importData.progress));
+                state.learningProgress = importData.progress;
+                
+                alert('Data imported successfully! The page will now reload.');
+                location.reload();
+            } catch (e) {
+                console.error('Error importing data:', e);
+                alert('Error importing data: ' + e.message);
+            }
+        };
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+function exportProgressOnly() {
+    try {
+        const exportData = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            progress: state.learningProgress
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `spanish-vocabulary-progress-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert('Progress exported successfully!');
+    } catch (e) {
+        console.error('Error exporting progress:', e);
+        alert('Error exporting progress: ' + e.message);
+    }
+}
+
+function importProgressOnly() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importData = JSON.parse(event.target.result);
+                
+                // Validate import data structure
+                if (!importData.version || !importData.progress) {
+                    throw new Error('Invalid progress file format');
+                }
+                
+                // Confirm before overwriting
+                if (!confirm('This will replace your current learning progress. Continue?')) {
+                    return;
+                }
+                
+                // Import progress
+                localStorage.setItem('vocabularyProgress', JSON.stringify(importData.progress));
+                state.learningProgress = importData.progress;
+                
+                updateStatistics();
+                if (state.currentVocab) {
+                    displayVocabulary();
+                }
+                
+                alert('Progress imported successfully!');
+            } catch (e) {
+                console.error('Error importing progress:', e);
+                alert('Error importing progress: ' + e.message);
+            }
+        };
+        reader.readAsText(file);
+    };
+    
+    input.click();
 }
 
 // Check if a vocabulary is due for review

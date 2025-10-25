@@ -20,6 +20,9 @@
                     <button id="speechBtn" class="speech-btn" title="Text-to-Speech">
                         <span class="speech-icon">🔊</span>
                     </button>
+                    <a href="manage-lections.html" class="speech-btn" style="text-decoration: none;" title="Manage Lections">
+                        <span class="speech-icon">📚</span>
+                    </a>
                 </div>
             </div>
         </header>
@@ -172,12 +175,33 @@
                     <button id="skipOneDayBtn" class="skip-day-btn" title="Advance all review dates by 1 day">⏩ Skip 1 Day</button>
                     <button id="resetProgressBtn" class="reset-btn">Reset Progress</button>
                 </div>
+                
+                <h2 style="margin-top: 20px;">Backup & Restore</h2>
+                <div class="backup-controls">
+                    <button id="exportAllBtn" class="backup-btn" title="Export all data (lections + progress)">
+                        <span class="btn-icon">💾</span>
+                        <span>Export All</span>
+                    </button>
+                    <button id="importAllBtn" class="backup-btn" title="Import all data (lections + progress)">
+                        <span class="btn-icon">📥</span>
+                        <span>Import All</span>
+                    </button>
+                    <button id="exportProgressBtn" class="backup-btn secondary" title="Export progress only">
+                        <span class="btn-icon">📊</span>
+                        <span>Export Progress</span>
+                    </button>
+                    <button id="importProgressBtn" class="backup-btn secondary" title="Import progress only">
+                        <span class="btn-icon">📈</span>
+                        <span>Import Progress</span>
+                    </button>
+                </div>
             </aside>
         </div>
     </div>
 
-    <!-- Load modules in order: storage, lections, vocabulary, speech, then main app -->
+    <!-- Load modules in order: storage, lection-storage, lections, vocabulary, speech, then main app -->
     <script src="scripts/storage.js"></script>
+    <script src="scripts/lection-storage.js"></script>
     <script src="scripts/lections.js"></script>
     <script src="scripts/vocabulary.js"></script>
     <script src="scripts/speech.js"></script>

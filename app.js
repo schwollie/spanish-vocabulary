@@ -16,7 +16,7 @@ const state = {
 
 // Initialize the app
 async function init() {
-    loadLearningProgress(); // Load progress from cookies first
+    loadLearningProgress(); // Load progress from localStorage first
     await loadLections();
     initSpeech(); // Initialize speech synthesis
     setupEventListeners();
@@ -75,6 +75,12 @@ function setupEventListeners() {
     if (skipDayBtn) {
         skipDayBtn.addEventListener('click', skipOneDay);
     }
+    
+    // Backup/Restore buttons
+    document.getElementById('exportAllBtn').addEventListener('click', exportAllData);
+    document.getElementById('importAllBtn').addEventListener('click', importAllData);
+    document.getElementById('exportProgressBtn').addEventListener('click', exportProgressOnly);
+    document.getElementById('importProgressBtn').addEventListener('click', importProgressOnly);
 }
 
 // Start the app when page loads

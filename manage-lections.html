@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Lections - Spanish Vocabulary Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .manage-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .add-lection-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-hint {
+            font-size: 0.9em;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-add, .btn-save {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add:hover, .btn-save:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        .lections-list {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .lections-list h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .lection-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+
+        .lection-card:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+        }
+
+        .lection-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .lection-card.drag-over {
+            border-color: #667eea;
+            border-style: dashed;
+            background: #eef2ff;
+        }
+
+        .lection-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .lection-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lection-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .lection-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .lection-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit, .btn-delete, .drag-handle {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2563eb;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .drag-handle {
+            background: #6b7280;
+            color: white;
+            cursor: move;
+        }
+
+        .drag-handle:hover {
+            background: #4b5563;
+        }
+
+        .lection-vocab-count {
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        #editForm {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="manage-container">
+        <header>
+            <h1>📚 Manage Lections</h1>
+            <a href="index.html" class="back-btn">← Back to Trainer</a>
+        </header>
+
+        <!-- Add/Edit Lection Form -->
+        <div class="add-lection-form" id="addForm">
+            <h2>➕ Add New Lection</h2>
+            <div class="form-group">
+                <label for="lectionName">Lection Name</label>
+                <input type="text" id="lectionName" placeholder="e.g., Para Empezar" required>
+            </div>
+            <div class="form-group">
+                <label for="lectionContent">Vocabularies</label>
+                <textarea id="lectionContent" placeholder="spanish ## german&#10;hola ## Hallo&#10;buenos días ## Guten Morgen" required></textarea>
+                <div class="form-hint">Format: spanish ## german (one vocabulary per line)</div>
+            </div>
+            <div class="form-buttons">
+                <button class="btn-add" onclick="addLection()">Add Lection</button>
+            </div>
+        </div>
+
+        <!-- Edit Form (hidden by default) -->
+        <div class="add-lection-form" id="editForm">
+            <h2>✏️ Edit Lection</h2>
+            <div class="form-group">
+                <label for="editLectionName">Lection Name</label>
+                <input type="text" id="editLectionName" required>
+            </div>
+            <div class="form-group">
+                <label for="editLectionContent">Vocabularies</label>
+                <textarea id="editLectionContent" required></textarea>
+                <div class="form-hint">Format: spanish ## german (one vocabulary per line)</div>
+            </div>
+            <div class="form-buttons">
+                <button class="btn-save" onclick="saveLection()">Save Changes</button>
+                <button class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Lections List -->
+        <div class="lections-list">
+            <h2>Your Lections (Drag to Reorder)</h2>
+            <div id="lectionsList"></div>
+        </div>
+    </div>
+
+    <script src="scripts/lection-storage.js"></script>
+    <script src="scripts/lection-manager.js"></script>
+</body>
+</html>

@@ -1,81 +1,33 @@
 // ============================================
-// LECTIONS MODULE - Loading and Managing Lections
+// LECTIONS MODULE - Loading and Managing Lections from LocalStorage
 // ============================================
 
-// Load lection files
+// Load lections from localStorage
 async function loadLections() {
-    // Load lection list from JSON file
-    let lectionFiles = [];
-    try {
-        const response = await fetch('lections.json');
-        if (response.ok) {
-            lectionFiles = await response.json();
-        }
-    } catch (error) {
-        console.error('Error loading lections.json:', error);
-        // Fallback to default lections
-        lectionFiles = [
-            '0-Para Empezar.txt',
-            '1-Leccion 1.txt'
-        ];
-    }
-
     const lectionList = document.getElementById('lectionList');
     lectionList.innerHTML = '';
 
-    for (const file of lectionFiles) {
-        const match = file.match(/^(\d+)-(.+)\.txt$/);
-        if (match) {
-            const number = match[1];
-            const name = match[2];
-            
-            const lection = {
-                number: parseInt(number),
-                name: name,
-                filename: file,
-                vocabularies: []
-            };
+    // Initialize default lections if none exist
+    initializeDefaultLections();
+    
+    // Get all lections from localStorage
+    const lections = getAllLections();
+    
+    // Convert to state format with proper numbering
+    lections.forEach((lection, index) => {
+        const stateLection = {
+            number: index,
+            name: lection.name,
+            id: lection.id,
+            vocabularies: lection.vocabularies
+        };
+        
+        state.lections.push(stateLection);
+        createLectionCheckbox(stateLection, lectionList);
+    });
 
-            // Try to load the file
-            try {
-                const response = await fetch(`lections/${file}`);
-                if (response.ok) {
-                    const content = await response.text();
-                    lection.vocabularies = parseVocabularies(content);
-                    state.lections.push(lection);
-                    
-                    // Create checkbox for this lection
-                    createLectionCheckbox(lection, lectionList);
-                }
-            } catch (error) {
-                console.error(`Error loading ${file}:`, error);
-            }
-        }
-    }
-
-    // Sort lections by number
+    // Sort lections by number (already in order from localStorage)
     state.lections.sort((a, b) => a.number - b.number);
-}
-
-// Parse vocabulary file content
-function parseVocabularies(content) {
-    const lines = content.split('\n');
-    const vocabularies = [];
-
-    for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine && trimmedLine.includes('##')) {
-            const parts = trimmedLine.split('##');
-            if (parts.length === 2) {
-                vocabularies.push({
-                    spanish: parts[0].trim(),
-                    german: parts[1].trim()
-                });
-            }
-        }
-    }
-
-    return vocabularies;
 }
 
 // Create checkbox for lection
