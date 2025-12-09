@@ -24,12 +24,12 @@ async function init() {
     updateVocabularyCount();
     updateStatistics(); // Update statistics display
     
-    // Initialize Google Drive sync
+    // Initialize Firebase Authentication
     try {
-        await initGoogleAuth();
-        initGoogleDriveSync();
+        await initFirebaseAuth();
+        console.log('✅ Firebase initialized successfully');
     } catch (error) {
-        console.error('Failed to initialize Google Drive sync:', error);
+        console.error('Failed to initialize Firebase:', error);
     }
 }
 
@@ -90,7 +90,7 @@ function setupEventListeners() {
     document.getElementById('exportProgressBtn').addEventListener('click', exportProgressOnly);
     document.getElementById('importProgressBtn').addEventListener('click', importProgressOnly);
     
-    // Google Drive sync button
+    // Firebase sync button
     const manualSyncBtn = document.getElementById('manualSyncBtn');
     if (manualSyncBtn) {
         manualSyncBtn.addEventListener('click', handleManualSync);

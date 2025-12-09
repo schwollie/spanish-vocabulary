@@ -27,9 +27,9 @@ function saveLectionToStorage(lection) {
     try {
         localStorage.setItem(`lection_${lection.id}`, JSON.stringify(lection));
         
-        // Mark data as modified for sync
-        if (typeof markLocalDataAsModified === 'function') {
-            markLocalDataAsModified();
+        // Sync to Firebase if authenticated
+        if (typeof syncLectionToFirebase === 'function') {
+            syncLectionToFirebase(lection);
         }
         
         return true;
@@ -49,9 +49,9 @@ function deleteLectionFromStorage(id) {
     const newOrder = lectionOrder.filter(lectionId => lectionId !== id);
     localStorage.setItem('lectionOrder', JSON.stringify(newOrder));
     
-    // Mark data as modified for sync
-    if (typeof markLocalDataAsModified === 'function') {
-        markLocalDataAsModified();
+    // Sync to Firebase if authenticated
+    if (typeof deleteLectionFromFirebase === 'function') {
+        deleteLectionFromFirebase(id);
     }
 }
 
@@ -99,11 +99,11 @@ function vocabulariesToText(vocabularies) {
 }
 
 // Initialize with default lection if none exist
-// Now accepts a parameter to skip initialization if we expect data from Drive
+// Now accepts a parameter to skip initialization if we expect data from Firebase
 function initializeDefaultLections(skipIfSignedIn = false) {
-    // If user might have Drive data, don't create defaults yet
-    if (skipIfSignedIn && localStorage.getItem('googleAccessToken')) {
-        console.log('⏳ Skipping default lection creation - waiting for Drive sync');
+    // If user might have Firebase data, don't create defaults yet
+    if (skipIfSignedIn && typeof isFirebaseAuthenticated === 'function' && isFirebaseAuthenticated()) {
+        console.log('⏳ Skipping default lection creation - waiting for Firebase sync');
         return false; // Indicate that defaults were not created
     }
     

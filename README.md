@@ -27,11 +27,12 @@ A web-based flashcard application for learning Spanish vocabulary with spaced re
 - Click speaker icon to hear words again
 - Helps with proper pronunciation learning
 
-### ☁️ Google Drive Sync
+### ☁️ Firebase Real-time Sync
 - Sign in with Google account
-- Automatic sync across devices
-- Data stored securely in your Drive
-- Offline-capable with localStorage backup
+- Real-time sync across all devices
+- Data stored securely in Firebase
+- Instant updates when changes occur
+- Offline-capable with localStorage cache
 
 ## How It Works
 
@@ -72,8 +73,9 @@ Each learning session contains all selected vocabularies. Once you answer a voca
 │   ├── lection-manager.js  # Management page logic
 │   ├── storage.js          # Learning progress tracking
 │   ├── speech.js           # Text-to-speech functionality
-│   ├── google-auth.js      # Google OAuth authentication
-│   └── google-drive-sync.js # Cross-device sync
+│   ├── firebase-config.js  # Firebase initialization
+│   ├── firebase-auth.js    # Google OAuth with Firebase
+│   └── firebase-sync.js    # Real-time database sync
 └── lections/               # Sample vocabulary files
     ├── 0-Para Empezar.txt
     └── 1-Leccion 1.txt
@@ -86,11 +88,11 @@ Each learning session contains all selected vocabularies. Once you answer a voca
 2. Open `index.html` in a web browser
 3. Start learning immediately with default lections
 
-### With Google Drive Sync
+### With Firebase Sync
 1. Open the app in a browser
 2. Click **"Sign in with Google"**
 3. Grant permissions
-4. Your data syncs automatically across devices
+4. Your data syncs in real-time across all devices
 
 ## Usage
 
@@ -117,27 +119,28 @@ gracias = danke
 ## Technical Details
 
 ### Storage
-- **localStorage**: Local browser storage (primary)
-- **Google Drive**: Cloud backup and sync (optional)
-- **Automatic sync**: Every 2 minutes when signed in
-- **Instant sync**: When switching between devices/tabs
+- **localStorage**: Browser cache for offline access
+- **Firebase Realtime Database**: Cloud storage and sync (optional)
+- **Real-time sync**: Instant updates across all devices
+- **Automatic sync**: Changes sync immediately when online
 
 ### Performance Optimizations
-- Debounced sync (reduces API calls by 76%)
-- File ID caching (50% faster syncs)
-- Rate limiting (prevents quota issues)
+- Real-time database listeners (instant cross-device updates)
+- localStorage caching (offline capability)
 - Session-based vocabulary pool
+- Efficient Firebase queries
 
 ### Browser Compatibility
-- Modern browsers with ES6+ support
+- Modern browsers with ES6+ module support
 - Chrome, Firefox, Edge, Safari
 - Mobile browsers supported
 
 ## Data Privacy
 - Vocabulary data stored locally in your browser
-- Google Drive sync is optional
-- Data stored in your personal Google Drive only
+- Firebase sync is optional
+- Data stored in your personal Firebase account only
 - No third-party data collection
+- Secure Firebase security rules (user-only access)
 
 ## Development
 Pure vanilla JavaScript - no build tools or frameworks required. Simply edit the files and refresh your browser.
