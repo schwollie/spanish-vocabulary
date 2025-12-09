@@ -9,6 +9,12 @@ let draggedElement = null;
 document.addEventListener('DOMContentLoaded', function() {
     initializeDefaultLections();
     displayLections();
+    
+    // Setup import default lections button
+    const importDefaultBtn = document.getElementById('importDefaultLectionsBtn');
+    if (importDefaultBtn) {
+        importDefaultBtn.addEventListener('click', importDefaultLections);
+    }
 });
 
 // Display all lections
@@ -280,4 +286,88 @@ function handleDrop(e) {
     this.classList.remove('drag-over');
     
     return false;
+}
+
+// Import all default lections from text files
+async function importDefaultLections() {
+    const defaultLections = [
+        { file: '0-Para Empezar.txt', name: 'Para Empezar' },
+        { file: '1-Leccion 1.txt', name: 'Lección 1' },
+        { file: '2-Leccion 2.txt', name: 'Lección 2' },
+        { file: '3-Leccion 3.txt', name: 'Lección 3' },
+        { file: '4-Lecction 4.txt', name: 'Lección 4' },
+        { file: '5-adjectivos.txt', name: 'Adjetivos' }
+    ];
+    
+    if (!confirm(`Import all ${defaultLections.length} default lections? This will add them to your existing lections.`)) {
+        return;
+    }
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const lectionInfo of defaultLections) {
+        try {
+            const response = await fetch(`lections/${lectionInfo.file}`);
+            
+            if (!response.ok) {
+                console.error(`Failed to load ${lectionInfo.file}`);
+                errorCount++;
+                continue;
+            }
+            
+            const content = await response.text();
+            const vocabularies = parseVocabularyContent(content);
+            
+            if (vocabularies.length === 0) {
+                console.error(`No vocabularies found in ${lectionInfo.file}`);
+                errorCount++;
+                continue;
+            }
+            
+            // Check if lection with same name already exists
+            const existingLections = getAllLections();
+            const alreadyExists = existingLections.some(l => l.name === lectionInfo.name);
+            
+            if (alreadyExists) {
+                console.log(`Skipping ${lectionInfo.name} - already exists`);
+                continue;
+            }
+            
+            // Create new lection
+            const id = generateLectionId();
+            const lection = {
+                id: id,
+                name: lectionInfo.name,
+                vocabularies: vocabularies
+            };
+            
+            // Save to localStorage and Firebase
+            if (saveLectionToStorage(lection)) {
+                // Update order
+                const order = getLectionOrder();
+                order.push(id);
+                saveLectionOrder(order);
+                
+                successCount++;
+                console.log(`✅ Imported: ${lectionInfo.name} (${vocabularies.length} vocabularies)`);
+            } else {
+                errorCount++;
+            }
+            
+        } catch (error) {
+            console.error(`Error importing ${lectionInfo.file}:`, error);
+            errorCount++;
+        }
+    }
+    
+    // Refresh display
+    displayLections();
+    
+    // Show result
+    if (successCount > 0) {
+        alert(`✅ Successfully imported ${successCount} lection(s)!${errorCount > 0 ? `\n⚠️ ${errorCount} file(s) failed to import.` : ''}`);
+    } else {
+        alert(`❌ No new lections imported.${errorCount > 0 ? `\n${errorCount} file(s) failed or already exist.` : ''}`);
+    }
 }
