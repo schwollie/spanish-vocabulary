@@ -46,10 +46,12 @@ function saveLearningProgress() {
         const progressData = JSON.stringify(state.learningProgress);
         localStorage.setItem('vocabularyProgress', progressData);
         
-        // Sync to Firebase if authenticated
-        if (typeof syncProgressToFirebase === 'function') {
-            syncProgressToFirebase();
-        }
+        // Sync to Firebase if authenticated (async, don't wait)
+        setTimeout(() => {
+            if (typeof window.syncProgressToFirebase === 'function') {
+                window.syncProgressToFirebase();
+            }
+        }, 100);
     } catch (e) {
         console.error('Error saving learning progress:', e);
         // Check if quota exceeded

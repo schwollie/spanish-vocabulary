@@ -349,6 +349,7 @@ function getTimeAgo(date) {
 window.initFirebaseSync = initFirebaseSync;
 window.stopFirebaseSync = stopFirebaseSync;
 window.syncLectionToFirebase = syncLectionToFirebase;
+window.syncLectionOrderToFirebase = syncLectionOrderToFirebase;
 window.deleteLectionFromFirebase = deleteLectionFromFirebase;
 window.syncProgressToFirebase = syncProgressToFirebase;
 window.handleManualSync = handleManualSync;

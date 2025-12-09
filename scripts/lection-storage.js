@@ -27,10 +27,15 @@ function saveLectionToStorage(lection) {
     try {
         localStorage.setItem(`lection_${lection.id}`, JSON.stringify(lection));
         
-        // Sync to Firebase if authenticated
-        if (typeof syncLectionToFirebase === 'function') {
-            syncLectionToFirebase(lection);
-        }
+        // Sync to Firebase if authenticated (async, don't wait)
+        setTimeout(() => {
+            if (typeof window.syncLectionToFirebase === 'function') {
+                window.syncLectionToFirebase(lection);
+                console.log('🔄 Syncing lection to Firebase:', lection.name);
+            } else {
+                console.log('⚠️ Firebase sync not available yet');
+            }
+        }, 100);
         
         return true;
     } catch (e) {
@@ -49,10 +54,13 @@ function deleteLectionFromStorage(id) {
     const newOrder = lectionOrder.filter(lectionId => lectionId !== id);
     localStorage.setItem('lectionOrder', JSON.stringify(newOrder));
     
-    // Sync to Firebase if authenticated
-    if (typeof deleteLectionFromFirebase === 'function') {
-        deleteLectionFromFirebase(id);
-    }
+    // Sync to Firebase if authenticated (async, don't wait)
+    setTimeout(() => {
+        if (typeof window.deleteLectionFromFirebase === 'function') {
+            window.deleteLectionFromFirebase(id);
+            console.log('🔄 Deleting lection from Firebase:', id);
+        }
+    }, 100);
 }
 
 // Get lection order
@@ -63,6 +71,14 @@ function getLectionOrder() {
 // Save lection order
 function saveLectionOrder(order) {
     localStorage.setItem('lectionOrder', JSON.stringify(order));
+    
+    // Sync to Firebase if authenticated (async, don't wait)
+    setTimeout(() => {
+        if (typeof window.syncLectionOrderToFirebase === 'function') {
+            window.syncLectionOrderToFirebase(order);
+            console.log('🔄 Syncing lection order to Firebase');
+        }
+    }, 100);
 }
 
 // Generate unique ID for new lection
