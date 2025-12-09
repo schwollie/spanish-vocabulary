@@ -21,6 +21,8 @@ function initFirebaseAuth() {
     return new Promise((resolve) => {
         console.log('🔐 Initializing Firebase Authentication...');
         
+        let firstCall = true;
+        
         // Listen for auth state changes
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -54,9 +56,13 @@ function initFirebaseAuth() {
                     stopFirebaseSync();
                 }
             }
+            
+            // Resolve on first auth state check (signed in or out)
+            if (firstCall) {
+                firstCall = false;
+                resolve();
+            }
         });
-        
-        resolve();
     });
 }
 

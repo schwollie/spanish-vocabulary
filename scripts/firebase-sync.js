@@ -104,6 +104,12 @@ function setupLectionsListener(userId) {
         const firebaseLections = snapshot.val();
         console.log('📥 Lections updated from Firebase:', Object.keys(firebaseLections).length, 'lections');
         
+        // Clear all existing lections from localStorage first
+        const localOrder = JSON.parse(localStorage.getItem('lectionOrder') || '[]');
+        localOrder.forEach(lectionId => {
+            localStorage.removeItem(`lection_${lectionId}`);
+        });
+        
         // Update localStorage with Firebase data
         Object.entries(firebaseLections).forEach(([lectionId, lection]) => {
             localStorage.setItem(`lection_${lectionId}`, JSON.stringify(lection));

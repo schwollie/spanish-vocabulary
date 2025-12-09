@@ -6,7 +6,16 @@ let editingLectionId = null;
 let draggedElement = null;
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Wait for Firebase auth to initialize (if available)
+    if (typeof window.initFirebaseAuth === 'function') {
+        await window.initFirebaseAuth();
+        console.log('✅ Firebase auth ready on manage page');
+    } else {
+        // If Firebase not loaded yet, wait a bit
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
     initializeDefaultLections();
     displayLections();
     
