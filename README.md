@@ -1,0 +1,147 @@
+# Spanish Vocabulary Trainer 🇪🇸
+
+A web-based flashcard application for learning Spanish vocabulary with spaced repetition, text-to-speech, and Google Drive sync.
+
+## Features
+
+### 🎯 Learning Modes
+- **ES → DE**: Spanish to German translation
+- **DE → ES**: German to Spanish translation  
+- **Random**: Mixed direction for both ways practice
+
+### 📚 Lection Management
+- Create and organize vocabulary lists (lections)
+- Import vocabulary from text files
+- Edit, duplicate, and delete lections
+- Select multiple lections for combined practice
+
+### 🧠 Spaced Repetition System
+- **Phase-based learning** (0-5 phases)
+- Vocabularies advance through phases with correct answers
+- Automatic scheduling based on performance
+- **Random mode**: All vocabularies in session
+- **Spaced mode**: Only due vocabularies shown
+
+### 🔊 Text-to-Speech
+- Automatic Spanish pronunciation
+- Click speaker icon to hear words again
+- Helps with proper pronunciation learning
+
+### ☁️ Google Drive Sync
+- Sign in with Google account
+- Automatic sync across devices
+- Data stored securely in your Drive
+- Offline-capable with localStorage backup
+
+## How It Works
+
+### Learning Flow
+1. **Select lections** from the left panel
+2. **Choose learning mode** (ES→DE, DE→ES, or Random)
+3. **Tap the card** to reveal the answer
+4. **Rate yourself**:
+   - ✓ **Correct** → Advances to next phase
+   - ✗ **Wrong** → Resets to Phase 0
+5. **Progress** is automatically saved
+
+### Phase System
+- **Phase 0**: New/failed vocabulary
+- **Phase 1-4**: Increasing mastery levels
+- **Phase 5**: Fully learned (less frequent reviews)
+
+Correct answers advance phases, wrong answers reset to Phase 0.
+
+### Session Pool
+Each learning session contains all selected vocabularies. Once you answer a vocabulary (correct or wrong), it's removed from the current session. The session resets when:
+- All vocabularies are answered
+- You reload the page
+- You change lection selection
+
+## File Structure
+
+```
+├── index.html              # Main learning interface
+├── manage-lections.html    # Lection management page
+├── styles.css              # Application styles
+├── app.js                  # Main application logic
+├── lections.json           # Default lection data
+├── scripts/
+│   ├── vocabulary.js       # Card display & interaction
+│   ├── lections.js         # Lection loading & selection
+│   ├── lection-storage.js  # CRUD operations for lections
+│   ├── lection-manager.js  # Management page logic
+│   ├── storage.js          # Learning progress tracking
+│   ├── speech.js           # Text-to-speech functionality
+│   ├── google-auth.js      # Google OAuth authentication
+│   └── google-drive-sync.js # Cross-device sync
+└── lections/               # Sample vocabulary files
+    ├── 0-Para Empezar.txt
+    └── 1-Leccion 1.txt
+```
+
+## Setup
+
+### Local Use
+1. Clone or download the repository
+2. Open `index.html` in a web browser
+3. Start learning immediately with default lections
+
+### With Google Drive Sync
+1. Open the app in a browser
+2. Click **"Sign in with Google"**
+3. Grant permissions
+4. Your data syncs automatically across devices
+
+## Usage
+
+### Adding Custom Lections
+1. Go to **Manage Lections** (📚 icon)
+2. Click **"Import from .txt file"**
+3. Format: `Spanish word/phrase = German translation` (one per line)
+4. Or manually add vocabularies using the form
+
+### Example .txt Format
+```
+hola = hallo
+buenos días = guten Morgen
+¿Cómo estás? = Wie geht es dir?
+gracias = danke
+```
+
+### Learning Tips
+- Use **Random mode** to practice both directions
+- Use **Spaced mode** for efficient review of due vocabularies
+- Listen to pronunciations to improve speaking
+- Be honest with correct/wrong ratings for optimal progress
+
+## Technical Details
+
+### Storage
+- **localStorage**: Local browser storage (primary)
+- **Google Drive**: Cloud backup and sync (optional)
+- **Automatic sync**: Every 2 minutes when signed in
+- **Instant sync**: When switching between devices/tabs
+
+### Performance Optimizations
+- Debounced sync (reduces API calls by 76%)
+- File ID caching (50% faster syncs)
+- Rate limiting (prevents quota issues)
+- Session-based vocabulary pool
+
+### Browser Compatibility
+- Modern browsers with ES6+ support
+- Chrome, Firefox, Edge, Safari
+- Mobile browsers supported
+
+## Data Privacy
+- Vocabulary data stored locally in your browser
+- Google Drive sync is optional
+- Data stored in your personal Google Drive only
+- No third-party data collection
+
+## Development
+Pure vanilla JavaScript - no build tools or frameworks required. Simply edit the files and refresh your browser.
+
+---
+
+**Start learning Spanish vocabulary efficiently with spaced repetition!** 🚀

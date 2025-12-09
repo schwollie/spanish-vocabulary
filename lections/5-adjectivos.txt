@@ -1,0 +1,103 @@
+peligroso
+gefährlichseguro ## sicher
+bueno ## gut
+malo ## schlecht
+feliz, algre ## fröhlich
+infeliz, triste ## traurig
+caro ## teuer
+barato ## billig
+gordo ## dick, fett
+delgado/flaco ## dünn, schlank
+alto ## hoch
+bajo ## niedrig
+intorvertido ## scheu
+extrovertido ## offen
+grande ## gross
+pequeño ## klein
+sano ## gesund
+enfermo ## krank
+largo ## lang
+corto ## kurz
+rápido ## schnell
+lento, despacio ## langsam
+inteligente ## intelligent
+tonto ## dumm
+pesado ## schwer
+liviano ## leicht
+natural ## natürlich
+artificial ## künstlich
+amable ## freundlich
+tosco, grosero ## unfreundlich
+interesante ## interessant
+aburrido ## langweilig
+ocupado ## besetzt
+desocupado ## frei
+rico ## reich
+pobre ## arm
+rico, delicioso ## gut (Essen)
+feo, desagradable ## ellig (Essen)
+joven ## jung
+major ## älter
+nuevo ## neu
+viejo ## alt
+fuerte ## stark
+débil ## schwach
+frío ## kalt
+caliente ## heiss
+mucho ## viel
+poco ## wenig
+borracho ## betrunken
+sobrio ## nüchtern
+serio ## ernst
+divertido ## lustig
+silencioso ## leise
+ruidoso ## laut
+raro ## selten
+común ## üblich
+chuchaqui ## verkatert
+bien ## gut
+sincero ## ehrlich
+mentiroso ## verlogen
+activo ## aktiv
+pasivo ## passiv
+ancho, amplio ## breit
+angosto, estrecho ## schmal
+limpio ## sauber
+sucio ## schmutzig
+vacía ## leer
+lleno ## voll
+grueso ## grob
+delgado ## schmal
+útil ## nützlich
+inútil ## nutzlos
+faćil ## einfach
+difícil ## schwierig
+cómodo ## bequem
+incómodo ## unbequem
+rubio ## blond, hell
+moreno ## dunkel
+blanco ## weiß
+negro ## schwarz
+soltero ## ledig
+casado ## verheiratet
+cansado ## müde
+decansado ## ausgeruht
+duro ## hart
+suave ## weich
+tierno ## unreif (Frucht)
+maduro ## reif, erwachsen
+inmaduro ## unreif
+ordenado ## ordentlich
+desordenado ## unordentlich
+solo ## allein
+acompañado ## begleitet
+puntual ## pünktlich
+impuntual ## unpünktlich
+seco ## trocken
+mojado ## nass
+tranquilo ## ruhig
+intranquilo ## unruhig
+bonito ## hübsch
+feo ## hässlich
+cortés ## höflich
+descortés ## unhöflich

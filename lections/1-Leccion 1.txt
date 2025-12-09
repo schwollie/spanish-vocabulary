@@ -1,0 +1,239 @@
+en ## in
+la universidad ## Universität
+¿Qué es la universidad? ## Was ist die Universität?
+es ## ist
+el/la amigo/-a ## Freund/in
+el aula ## Hörsaal, Klassenzimmer, Kursraum
+la cultura ## Kultur
+el horario ## Stundenplan
+el título ## Titel
+el deporte ## Sport
+la fiesta ## Fest, Feier
+la asociación ## Verbindung, Verein, Verband
+la biblioteca ## Bibliothek
+el examen ## Prüfung
+la excursión ## Ausflug, Excursion
+la investigación ## Forschung, Untersuchung
+para mi ## für mich
+bienvenido/-a ## willkommen in
+el departmento ## Abteilung, Fachbereich
+el servico ## Service, Dienst, Dienstleistung
+el/la alumno/a ## Schüler/in, Student/in
+el anuncio ## Ankündigung, Bekanntgabe, Anzeige
+los estudios ## Studium
+el/la rector/a ## Rektor/in
+la inauguración del curso académico ## Auftaktveranstaltung des Studienjahres
+la restauración ## Restaurierung
+de ## von
+la fachada ## Fassade
+la oferta ## Angebot
+las actividades de deporte ## Sportaktivitäten
+nuevo/-a ## neu
+miles de estudiantes ## Tausende Studierende
+la feria de bienvenida ## Willkommensfeier (für Erstsemester
+el plazo ## Frist
+solicitar ## beantragen, sich bewerben um
+la beca ## Stipendium
+la movilidad ## Mobilität, Beweglichkeit
+el programa ## Programm
+el grado ## akademischer Grad
+el máster universitario ## Master
+el doctorado ## Doktortitel, Promotion
+propio/-a ## eigene/r/s
+los serviciosal estudiante ## Studierendenservice
+el voluntario ## Ehrenamt, freiwilliger Dienst
+el laboratorio ## Labor
+la informática ## Informatik
+las practicas ## Praktikum
+la información ## Information
+el lugar ## Ort, Platz, Stelle
+masculino/-a ## männlich
+femenino/-a ## weiblich
+el singular ## Einzahl
+el plural ## Mehrzahl
+el/la ## der, die, das
+un/una ## ein, eine
+unos títulos ## einige Titel
+el ojo ## Auge
+la cifra ## Ziffer, Zahl
+Tiene...años ## Er/sie ist ... Jahre alt.
+tener ## haben
+casi ## fast, beinahe
+en total ## insgesamt
+la facultad ## Fakultät
+la escuela universitaria ## Hochschule
+aproximadamente ## etwa, ungefähr
+el campus ## Universitätsgelände, Campus
+la posibilidad ## Möglichkeit
+elegir ## (aus)wählen
+español/a ## spanisch
+el café ## Kaffee
+la guitarra ## Gitarre
+el libro ## Buch
+el chile con carne ## Chili con carne
+yo no ## ich nicht
+te ## dir
+presentar ## vorstellen
+contar ## erzählen
+el grupo de música ## Musikgruppe, Band
+solo/-a ## allein
+el tiempo libre ## Freizeit
+la cafetería ## Café, Cafeteria/ Mensa
+el piano ## Klavier
+la sociología ## Soziologie
+autónomo/-a ## autonom
+entre ## unter
+juntos/-as ## zusammen, gemeinsam
+la nacionalidad ## Nationalität
+la familia ## Familie
+diferente ## unterschiedlich, verschieden
+Turquía ## Türkei
+yo ## ich
+como ## als
+él/ella ## er/sie
+la asignatura optativa ## Wahl(pflicht)fach
+usted ## Sie (Höflichkeitsform)
+optativo/-a ## fakultativ, wahlfrei
+nosotros/as ## wir
+comprender ## verstehen
+vosotros/vosotras ## ihr
+difícil ## schwierig
+ellos/ellas ## sie (Plural)
+leer ## lesen
+ustedes ## Sie (höfliche Anrede Plural)
+mucho ## viel
+el tándem ## Tandempartner
+la pasión ## Leidenschaft
+El nùmero de teléfono ## Telefonnummer
+bailar ## tanzen
+el cero ## Null
+la salsa ## Salsa
+la clase ## Klasse
+el tango ## Tango
+no ## nein, kein/e
+tocar ## spielen (Instrument)
+la cuenta ## Konto
+entoces ## dann
+Latinoamérica ## Lateinamerika
+tener algo en común ## etwas gemeinsam haben
+el perfil ## Profil
+el/la informatíco/-a ## Informatiker/in
+el/la bibliotecario/-a ## Bibliothekar/in
+el/la representante de alumnos ## Studentenvertreter/in
+el/la becario/a ## Stipendiat/in
+el/la auxiliar médico/-a ## medizinische Hilfskraft, Arzthelferin
+el/la administrativo/-a ## Verwaltungsangestellte/r, Sachbearbeiter/in
+el/la investigador/a ## Forscher/in, Wissenschaftler/in
+el personal de administración ## Verwaltungspersonal
+el nombre ## (Vor-)Name
+el apellido ## Nachname
+la edad ## Alter
+la dirección ## Adresse
+el lugar de residencia ## Wohnort
+el correro electrónico ## E-Mail(-Adresse)
+el lugar de nacimiento ## Geburtsort
+de apellido ## mit Nachnamen
+¿Qué haces? ## Was machst du (beruflich)?
+hacer ## machen
+¿De qué facultad eres? ## An welcher Fakultät bist du?
+¿Cuál es tu número de teléfono? ## Wie lautet deine Telefonnummer?
+el móvil ## Handy
+el celular ## Handy
+el número de matrícula ## Matrikelnummer
+la arroba (@) ## At-Zeichen, Klammeraffe
+el punto (.) ## Punkt
+el guion (-) ## Bindestrich
+el guion bajo (_) ## Unterstrich
+junto/-a ## zusammen
+o ## oder
+separado/-a ## getrennt
+el carnet electrónico ## elektronischer Studentenausweis
+¿Para qué? ## Wozu?
+usar ## benutzen
+el idioma ## Sprache
+la afición ## Hobby, Vorliebe, Neigung
+Italia ## Italien
+vivir ## leben
+el/la chico/-a ## Junge/Mädchen
+Rusia ## Russland
+Brasil ## Brasilien
+hablar ## sprechen
+el francés ## Französisch
+ahora ## jetzt
+aprender ## lernen
+estudiar ## lernen, studieren
+buscar ## suchen
+practicar ## üben, praktizieren
+cocinar ## kochen
+¿Qué tal si...? ## Wie wäre es, wenn...?
+mi ## mein/e
+algo ## etwas
+la antigüedad ## Altertum, Antike
+el nivel ## Niveau, Stufe
+el primer dia ## der erste Tag
+necesitar ## brauchen, müssen
+primero/-a ## erste/r/s
+porque ## weil
+el contacto ## Kontakt
+importante ## wichtig
+¿Es usted el señor Ríos? ## Sind Sie Herr Ríos?
+el alemán ## Deutsch
+ser ## sein
+el ruso ## Russisch
+el/la señor/a ## Herr/Frau
+escribir ## schreiben
+sí ## ja, doch
+el artículo ## Artikel
+soy yo ## Das bin ich.
+el blog ## Blog
+el/la estudiante de intercambio ## Austauschstudent/in
+el/la hablante de español ## Spanischsprachige/r
+claro ## klar, natürlich
+tomar ## trinken, essen
+¿Qué tal estás? ## Wie geht es dir?
+Grecia ## Griechenland
+¿De dónde eres? ## Woher bist du? Woher kommst du?
+trabajar ## arbeiten
+Francia ## Frankreich
+la empresa ## Unternehmen
+mira ## schau
+el turismo ## Tourismus
+este/-a ## diese/r/s
+participar ## teilnehmen an
+el/la conductor/a ## Koordinator/in
+el congreso ## Kongress
+Encantado/Encantada ## sehr erfreut
+internacional ## international, weltweit
+estos/-as son ## das sind
+mis ## meine
+también ## auch
+el/la colega ## Kollege/-in
+no ## nein
+España ## Spanien
+pero ## aber
+la clase de conversación ## Konversationsunterricht
+hoy ## heute
+viajar ## reisen
+el inglés ## Englisch
+el teatro ## Theater
+el/la catedrático/-a ## Professor/in
+el país ## Land
+Mucho gusto ## angenehm
+¿Donde? ## Wo?
+muy ## sehr
+¿Quién? ## Wer?
+el/la profesor/a invitado/-a ## Gastdozent/in
+por amor ## aus Liebe
+invitado/-a ## eingeladen
+por ## pro, durch, für, wegen
+el semestre ## Semester
+el amor ## Liebe
+no ## nicht
+el/la hispanohablante ## Spanischsprachige/r
+yo sí ## ich schon
+escuchar ## (zu)hören
+su ## sein/e, ihr/e
+¿Cúantos/-as? ## Wie viel ?
+¿Dónde? ## Wo?
+¿Qué? ## Wie?
+un piso compartido ## Wohngemeinschaft
