@@ -75,11 +75,8 @@ function loadLearningProgress() {
         state.lastProgressReset = lastReset;
     }
     
-    // Load last local update timestamp
-    const lastUpdate = localStorage.getItem('lastLocalUpdate');
-    if (lastUpdate) {
-        state.lastLocalUpdate = lastUpdate;
-    }
+    // DON'T load lastLocalUpdate here - it should only be set when actual changes occur
+    // This prevents stale timestamps from triggering unnecessary syncs
 }
 
 function saveLearningProgress() {
@@ -170,6 +167,14 @@ function resetLearningProgress() {
     if (confirm('Are you sure you want to reset all learning progress? This cannot be undone.')) {
         state.learningProgress = {};
         localStorage.removeItem('vocabularyProgress');
+        localStorage.removeItem('lastLocalUpdate'); // Clear the update timestamp too
+        
+        // Track this reset with timestamp
+        const now = new Date().toISOString();
+        state.lastProgressReset = now;
+        state.lastLocalUpdate = now; // Set update timestamp for the delete action
+        localStorage.setItem('lastProgressReset', now);
+        localStorage.setItem('lastLocalUpdate', now);
 
              // Delete from Firebase
         if (typeof window.deleteAllProgressFromFirebase === 'function') {
