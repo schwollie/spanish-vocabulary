@@ -16,6 +16,33 @@ const SPACED_INTERVALS = {
     9: 300     // ~10 months (for phase >= 9)
 };
 
+const DEFAULT_PROGRESS_TIMESTAMP = '1970-01-01T00:00:00.000Z';
+
+function normalizeProgressEntry(entry = {}) {
+    const normalized = { ...entry };
+    normalized.correctCount = typeof normalized.correctCount === 'number' ? normalized.correctCount : 0;
+    normalized.lastCorrect = normalized.lastCorrect || null;
+    normalized.lastWrong = normalized.lastWrong || null;
+    normalized.nextReviewDate = normalized.nextReviewDate || null;
+    normalized.lastUpdated = normalized.lastUpdated || normalized.lastCorrect || normalized.lastWrong || normalized.nextReviewDate || DEFAULT_PROGRESS_TIMESTAMP;
+    return normalized;
+}
+
+function normalizeLearningProgressData(rawProgress) {
+    if (!rawProgress || typeof rawProgress !== 'object') {
+        return {};
+    }
+
+    const normalized = {};
+    Object.entries(rawProgress).forEach(([key, entry]) => {
+        if (!entry || typeof entry !== 'object') {
+            return;
+        }
+        normalized[key] = normalizeProgressEntry(entry);
+    });
+    return normalized;
+}
+
 function getIntervalForPhase(phase) {
     if (phase >= 9) return SPACED_INTERVALS[9];
     return SPACED_INTERVALS[phase] || 0;
@@ -32,13 +59,20 @@ function loadLearningProgress() {
     const progressData = localStorage.getItem('vocabularyProgress');
     if (progressData) {
         try {
-            state.learningProgress = JSON.parse(progressData);
+            state.learningProgress = normalizeLearningProgressData(JSON.parse(progressData));
+            localStorage.setItem('vocabularyProgress', JSON.stringify(state.learningProgress));
         } catch (e) {
             console.error('Error loading learning progress:', e);
             state.learningProgress = {};
         }
     } else {
         state.learningProgress = {};
+    }
+    
+    // Load last reset timestamp
+    const lastReset = localStorage.getItem('lastProgressReset');
+    if (lastReset) {
+        state.lastProgressReset = lastReset;
     }
 }
 
@@ -64,11 +98,16 @@ function saveLearningProgress() {
 
 function getVocabProgress(vocab, direction) {
     const key = getVocabKey(vocab, direction);
-    return state.learningProgress[key] || {
+    if (state.learningProgress[key]) {
+        state.learningProgress[key] = normalizeProgressEntry(state.learningProgress[key]);
+        return state.learningProgress[key];
+    }
+    return {
         correctCount: 0,
         lastCorrect: null,
         lastWrong: null,
-        nextReviewDate: null
+        nextReviewDate: null,
+        lastUpdated: null
     };
 }
 
@@ -76,31 +115,27 @@ function updateVocabProgress(vocab, isCorrect, direction) {
     const key = getVocabKey(vocab, direction);
     const now = new Date();
     
-    if (!state.learningProgress[key]) {
-        state.learningProgress[key] = {
-            correctCount: 0,
-            lastCorrect: null,
-            lastWrong: null,
-            nextReviewDate: null
-        };
-    }
+    state.learningProgress[key] = normalizeProgressEntry(state.learningProgress[key]);
+    const progress = state.learningProgress[key];
     
     if (isCorrect) {
-        state.learningProgress[key].correctCount++;
-        state.learningProgress[key].lastCorrect = now.toISOString();
+        progress.correctCount++;
+        progress.lastCorrect = now.toISOString();
         
         // Calculate next review date based on phase
-        const phase = state.learningProgress[key].correctCount;
+        const phase = progress.correctCount;
         const daysUntilReview = getIntervalForPhase(phase);
         const nextReview = new Date(now);
         nextReview.setDate(nextReview.getDate() + daysUntilReview);
-        state.learningProgress[key].nextReviewDate = nextReview.toISOString();
+        progress.nextReviewDate = nextReview.toISOString();
     } else {
         // Reset to phase 0 on wrong answer
-        state.learningProgress[key].correctCount = 0;
-        state.learningProgress[key].lastWrong = now.toISOString();
-        state.learningProgress[key].nextReviewDate = now.toISOString(); // Available immediately
+        progress.correctCount = 0;
+        progress.lastWrong = now.toISOString();
+        progress.nextReviewDate = now.toISOString(); // Available immediately
     }
+    
+    progress.lastUpdated = now.toISOString();
     
     saveLearningProgress();
 }
@@ -122,8 +157,18 @@ function resetLearningProgress() {
     if (confirm('Are you sure you want to reset all learning progress? This cannot be undone.')) {
         state.learningProgress = {};
         localStorage.removeItem('vocabularyProgress');
+
+             // Delete from Firebase
+        if (typeof window.deleteAllProgressFromFirebase === 'function') {
+            console.log('🔄 Deleting all progress from Firebase');
+            window.deleteAllProgressFromFirebase();
+        }
+
         updateStatistics();
         displayVocabulary(); // Refresh display to hide progress badge
+        
+   
+        
         alert('Learning progress has been reset.');
     }
 }
@@ -188,8 +233,9 @@ function importAllData() {
                 localStorage.setItem('lections', JSON.stringify(importData.lections));
                 
                 // Import progress
-                localStorage.setItem('vocabularyProgress', JSON.stringify(importData.progress));
-                state.learningProgress = importData.progress;
+                const normalizedProgress = normalizeLearningProgressData(importData.progress);
+                localStorage.setItem('vocabularyProgress', JSON.stringify(normalizedProgress));
+                state.learningProgress = normalizedProgress;
                 
                 alert('Data imported successfully! The page will now reload.');
                 location.reload();
@@ -256,8 +302,9 @@ function importProgressOnly() {
                 }
                 
                 // Import progress
-                localStorage.setItem('vocabularyProgress', JSON.stringify(importData.progress));
-                state.learningProgress = importData.progress;
+                const normalizedProgress = normalizeLearningProgressData(importData.progress);
+                localStorage.setItem('vocabularyProgress', JSON.stringify(normalizedProgress));
+                state.learningProgress = normalizedProgress;
                 
                 updateStatistics();
                 if (state.currentVocab) {

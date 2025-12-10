@@ -22,6 +22,93 @@ let syncState = {
     lastSyncTime: null
 };
 
+function getNormalizedProgress(progress) {
+    if (typeof window !== 'undefined' && typeof window.normalizeLearningProgressData === 'function') {
+        return window.normalizeLearningProgressData(progress);
+    }
+    return progress || {};
+}
+
+function getProgressTimestamp(entry) {
+    if (!entry || !entry.lastUpdated) {
+        return 0;
+    }
+    const timestamp = Date.parse(entry.lastUpdated);
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function mergeProgressSnapshots(localProgress = {}, remoteProgress = {}) {
+    const normalizedLocal = getNormalizedProgress(localProgress);
+    const normalizedRemote = getNormalizedProgress(remoteProgress);
+    const merged = {};
+    const allKeys = Array.from(new Set([
+        ...Object.keys(normalizedLocal),
+        ...Object.keys(normalizedRemote)
+    ]));
+    allKeys.forEach((key) => {
+        const localEntry = normalizedLocal[key];
+        const remoteEntry = normalizedRemote[key];
+        if (!remoteEntry) {
+            merged[key] = localEntry;
+            return;
+        }
+        if (!localEntry) {
+            merged[key] = remoteEntry;
+            return;
+        }
+        const localTs = getProgressTimestamp(localEntry);
+        const remoteTs = getProgressTimestamp(remoteEntry);
+        if (localTs > remoteTs) {
+            merged[key] = localEntry;
+        } else if (remoteTs > localTs) {
+            merged[key] = remoteEntry;
+        } else if ((localEntry.correctCount || 0) >= (remoteEntry.correctCount || 0)) {
+            merged[key] = localEntry;
+        } else {
+            merged[key] = remoteEntry;
+        }
+    });
+    return {
+        merged,
+        normalizedLocal,
+        normalizedRemote
+    };
+}
+
+function areEntriesEqual(entryA = {}, entryB = {}) {
+    const keysA = Object.keys(entryA);
+    const keysB = Object.keys(entryB);
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
+    for (const key of keysA) {
+        if (!Object.prototype.hasOwnProperty.call(entryB, key)) {
+            return false;
+        }
+        if (entryA[key] !== entryB[key]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function areProgressMapsEqual(a = {}, b = {}) {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) {
+        return false;
+    }
+    for (const key of aKeys) {
+        if (!Object.prototype.hasOwnProperty.call(b, key)) {
+            return false;
+        }
+        if (!areEntriesEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Initialize Firebase real-time sync
 function initFirebaseSync() {
     const userId = getFirebaseUserId();
@@ -128,6 +215,34 @@ function setupLectionsListener(userId) {
 // Set up real-time listener for progress
 function setupProgressListener(userId) {
     const progressRef = ref(database, `users/${userId}/progress`);
+    const resetRef = ref(database, `users/${userId}/lastProgressReset`);
+    
+    // Listen for reset events
+    onValue(resetRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const remoteResetTime = snapshot.val();
+            const localResetTime = state.lastProgressReset || '1970-01-01T00:00:00.000Z';
+            
+            // If remote reset is newer than local data, clear local progress
+            if (remoteResetTime > localResetTime) {
+                console.log('🗑️ Remote reset detected, clearing local progress');
+                state.learningProgress = {};
+                state.lastProgressReset = remoteResetTime;
+                localStorage.removeItem('vocabularyProgress');
+                localStorage.setItem('lastProgressReset', remoteResetTime);
+                
+                if (typeof updateStatistics === 'function') {
+                    updateStatistics();
+                }
+                if (typeof updateVocabularyCount === 'function') {
+                    updateVocabularyCount();
+                }
+                if (typeof displayVocabulary === 'function') {
+                    displayVocabulary();
+                }
+            }
+        }
+    });
     
     syncListeners.progress = onValue(progressRef, (snapshot) => {
         if (!snapshot.exists()) {
@@ -141,16 +256,28 @@ function setupProgressListener(userId) {
             return;
         }
         
-        const firebaseProgress = snapshot.val();
-        console.log('📥 Progress updated from Firebase:', Object.keys(firebaseProgress).length, 'items');
+        const rawProgress = snapshot.val() || {};
+        const { merged, normalizedLocal } = mergeProgressSnapshots(state.learningProgress || {}, rawProgress);
+        const differsFromLocal = !areProgressMapsEqual(merged, normalizedLocal);
+        const differsFromRemote = !areProgressMapsEqual(merged, rawProgress);
         
-        // Update local state and localStorage
-        state.learningProgress = firebaseProgress;
-        localStorage.setItem('vocabularyProgress', JSON.stringify(firebaseProgress));
+        state.learningProgress = merged;
         
-        // Update UI
-        if (typeof updateStatistics === 'function') {
-            updateStatistics();
+        if (differsFromLocal) {
+            localStorage.setItem('vocabularyProgress', JSON.stringify(merged));
+            if (typeof updateStatistics === 'function') {
+                updateStatistics();
+            }
+            if (typeof updateVocabularyCount === 'function') {
+                updateVocabularyCount();
+            }
+        }
+        
+        if (differsFromRemote) {
+            console.log('📤 Local progress newer than Firebase, syncing merged data back...');
+            syncProgressToFirebase();
+        } else {
+            console.log('📥 Progress merged from Firebase:', Object.keys(rawProgress).length, 'items');
         }
         
         syncState.lastSyncTime = new Date();
@@ -272,14 +399,93 @@ async function syncProgressToFirebase() {
     
     try {
         const progressRef = ref(database, `users/${userId}/progress`);
-        await set(progressRef, state.learningProgress);
+        const snapshot = await get(progressRef);
+        const rawRemote = snapshot.exists() ? snapshot.val() : {};
+        const { merged, normalizedLocal } = mergeProgressSnapshots(state.learningProgress || {}, rawRemote);
+        const differsFromLocal = !areProgressMapsEqual(merged, normalizedLocal);
+        const differsFromRemote = !areProgressMapsEqual(merged, rawRemote);
         
-        console.log('✅ Progress synced to Firebase:', Object.keys(state.learningProgress).length, 'items');
+        state.learningProgress = merged;
+        
+        if (differsFromLocal) {
+            localStorage.setItem('vocabularyProgress', JSON.stringify(merged));
+            if (typeof updateStatistics === 'function') {
+                updateStatistics();
+            }
+            if (typeof updateVocabularyCount === 'function') {
+                updateVocabularyCount();
+            }
+        }
+        
+        if (differsFromRemote) {
+            await set(progressRef, merged);
+            console.log('✅ Progress synced to Firebase:', Object.keys(merged).length, 'items (merged)');
+        } else {
+            console.log('ℹ️ Progress already up to date with Firebase');
+        }
         
         syncState.lastSyncTime = new Date();
         
     } catch (error) {
         console.error('❌ Error syncing progress to Firebase:', error);
+    }
+}
+
+async function forceUploadProgressToFirebase(progressOverride) {
+    const userId = getFirebaseUserId();
+    if (!userId) {
+        console.log('⚠️ Not syncing progress: User not authenticated');
+        return;
+    }
+
+    try {
+        const progressRef = ref(database, `users/${userId}/progress`);
+        const payload = progressOverride ?? state.learningProgress ?? {};
+        await set(progressRef, payload);
+        console.log('✅ Progress force-uploaded to Firebase:', Object.keys(payload).length, 'items');
+        syncState.lastSyncTime = new Date();
+    } catch (error) {
+        console.error('❌ Error force-uploading progress to Firebase:', error);
+    }
+}
+
+async function deleteAllProgressFromFirebase() {
+    const userId = getFirebaseUserId();
+    if (!userId) {
+        console.log('⚠️ Not deleting progress: User not authenticated');
+        return;
+    }
+
+    try {
+        const progressRef = ref(database, `users/${userId}/progress`);
+        await remove(progressRef);
+        console.log('🗑️ All progress deleted from Firebase');
+        syncState.lastSyncTime = new Date();
+    } catch (error) {
+        console.error('❌ Error deleting progress from Firebase:', error);
+    }
+}
+
+async function syncProgressResetToFirebase(resetTimestamp) {
+    const userId = getFirebaseUserId();
+    if (!userId) {
+        console.log('⚠️ Not syncing reset: User not authenticated');
+        return;
+    }
+
+    try {
+        // Clear progress
+        const progressRef = ref(database, `users/${userId}/progress`);
+        await set(progressRef, {});
+        
+        // Set reset timestamp
+        const resetRef = ref(database, `users/${userId}/lastProgressReset`);
+        await set(resetRef, resetTimestamp);
+        
+        console.log('✅ Progress reset synced to Firebase:', resetTimestamp);
+        syncState.lastSyncTime = new Date();
+    } catch (error) {
+        console.error('❌ Error syncing reset to Firebase:', error);
     }
 }
 
@@ -358,5 +564,8 @@ window.syncLectionToFirebase = syncLectionToFirebase;
 window.syncLectionOrderToFirebase = syncLectionOrderToFirebase;
 window.deleteLectionFromFirebase = deleteLectionFromFirebase;
 window.syncProgressToFirebase = syncProgressToFirebase;
+window.forceUploadProgressToFirebase = forceUploadProgressToFirebase;
+window.deleteAllProgressFromFirebase = deleteAllProgressFromFirebase;
+window.syncProgressResetToFirebase = syncProgressResetToFirebase;
 window.handleManualSync = handleManualSync;
 window.updateSyncStatusUI = updateSyncStatusUI;

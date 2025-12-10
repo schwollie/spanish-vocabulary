@@ -6,6 +6,8 @@
 async function loadLections() {
     const lectionList = document.getElementById('lectionList');
     lectionList.innerHTML = '';
+    state.lections = [];
+    state.selectedLections.clear();
 
     // Initialize default lections if none exist
     // Skip if user is signed in - wait for Firebase sync instead

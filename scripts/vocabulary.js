@@ -203,7 +203,8 @@ function hideCardControls() {
 function handleWrong() {
     // Track the wrong answer only in spaced mode
     if (state.currentVocab && state.selectionMode === 'spaced') {
-        updateVocabProgress(state.currentVocab, false);
+        const direction = state.currentDirection || state.mode || 'spanishToGerman';
+        updateVocabProgress(state.currentVocab, false, direction);
         updateStatistics(); // Update statistics after tracking
     }
     
@@ -223,7 +224,8 @@ function handleWrong() {
 function handleCorrect() {
     // Track the correct answer only in spaced mode
     if (state.currentVocab && state.selectionMode === 'spaced') {
-        updateVocabProgress(state.currentVocab, true);
+        const direction = state.currentDirection || state.mode || 'spanishToGerman';
+        updateVocabProgress(state.currentVocab, true, direction);
         updateStatistics(); // Update statistics after tracking
     }
     

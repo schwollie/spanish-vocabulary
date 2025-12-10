@@ -11,7 +11,8 @@ const state = {
     mode: 'spanishToGerman', // 'spanishToGerman', 'germanToSpanish', 'random'
     selectionMode: 'spaced', // Default to spaced repetition
     showingAnswer: false,
-    learningProgress: {} // vocabulary key -> { correctCount, lastCorrect, lastWrong, nextReviewDate }
+    learningProgress: {}, // vocabulary key -> { correctCount, lastCorrect, lastWrong, nextReviewDate, lastUpdated }
+    lastProgressReset: null // ISO timestamp of last progress reset
 };
 
 // Initialize the app
