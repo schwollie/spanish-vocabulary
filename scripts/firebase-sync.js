@@ -29,6 +29,51 @@ function getNormalizedProgress(progress) {
     return progress || {};
 }
 
+// Encode keys for Firebase (replace special characters)
+function encodeFirebaseKey(key) {
+    // Firebase doesn't allow: . # $ / [ ] and we use ||
+    return key
+        .replace(/\./g, '%2E')
+        .replace(/#/g, '%23')
+        .replace(/\$/g, '%24')
+        .replace(/\//g, '%2F')
+        .replace(/\[/g, '%5B')
+        .replace(/\]/g, '%5D')
+        .replace(/\|\|/g, '__PIPE__');
+}
+
+// Decode keys from Firebase
+function decodeFirebaseKey(key) {
+    return key
+        .replace(/__PIPE__/g, '||')
+        .replace(/%2E/g, '.')
+        .replace(/%23/g, '#')
+        .replace(/%24/g, '$')
+        .replace(/%2F/g, '/')
+        .replace(/%5B/g, '[')
+        .replace(/%5D/g, ']');
+}
+
+// Encode progress object for Firebase
+function encodeProgressForFirebase(progress) {
+    const encoded = {};
+    Object.entries(progress).forEach(([key, value]) => {
+        const encodedKey = encodeFirebaseKey(key);
+        encoded[encodedKey] = value;
+    });
+    return encoded;
+}
+
+// Decode progress object from Firebase
+function decodeProgressFromFirebase(progress) {
+    const decoded = {};
+    Object.entries(progress).forEach(([key, value]) => {
+        const decodedKey = decodeFirebaseKey(key);
+        decoded[decodedKey] = value;
+    });
+    return decoded;
+}
+
 // Helper to update UI after progress changes
 function updateProgressUI() {
     if (typeof updateStatistics === 'function') {
@@ -56,7 +101,8 @@ async function checkAndSyncOnLoad(userId) {
         
         if (progressSnapshot.exists()) {
             const remoteData = progressSnapshot.val() || {};
-            const remoteProgress = remoteData.progress || {};
+            const remoteProgressRaw = remoteData.progress || {};
+            const remoteProgress = decodeProgressFromFirebase(remoteProgressRaw);
             const remoteTimestamp = remoteData.lastUpload || '1970-01-01T00:00:00.000Z';
             
             // Use the stale local timestamp from localStorage (loaded before Firebase init)
@@ -276,7 +322,8 @@ function setupProgressListener(userId) {
         }
         
         const remoteData = snapshot.val() || {};
-        const remoteProgress = remoteData.progress || {};
+        const remoteProgressRaw = remoteData.progress || {};
+        const remoteProgress = decodeProgressFromFirebase(remoteProgressRaw);
         const remoteTimestamp = remoteData.lastUpload || '1970-01-01T00:00:00.000Z';
         const localTimestamp = state.lastLocalUpdate || '1970-01-01T00:00:00.000Z';
         
@@ -418,8 +465,10 @@ async function uploadProgressToFirebase() {
         const now = new Date().toISOString();
         const progressRef = ref(database, `users/${userId}/progress`);
         
+        const encodedProgress = encodeProgressForFirebase(state.learningProgress || {});
+        
         await set(progressRef, {
-            progress: state.learningProgress || {},
+            progress: encodedProgress,
             lastUpload: now
         });
         
