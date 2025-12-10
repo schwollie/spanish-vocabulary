@@ -75,8 +75,13 @@ function loadLearningProgress() {
         state.lastProgressReset = lastReset;
     }
     
-    // DON'T load lastLocalUpdate here - it should only be set when actual changes occur
-    // This prevents stale timestamps from triggering unnecessary syncs
+    // Load lastLocalUpdate for comparison purposes only
+    // Don't set it in state yet - Firebase sync will handle that
+    const lastUpdate = localStorage.getItem('lastLocalUpdate');
+    if (lastUpdate) {
+        // Store temporarily for Firebase to compare, but mark it as stale
+        state._staleLocalUpdate = lastUpdate;
+    }
 }
 
 function saveLearningProgress() {

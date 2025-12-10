@@ -29,88 +29,112 @@ function getNormalizedProgress(progress) {
     return progress || {};
 }
 
-function getProgressTimestamp(entry) {
-    if (!entry || !entry.lastUpdated) {
-        return 0;
+// Helper to update UI after progress changes
+function updateProgressUI() {
+    if (typeof updateStatistics === 'function') {
+        updateStatistics();
     }
-    const timestamp = Date.parse(entry.lastUpdated);
-    return Number.isNaN(timestamp) ? 0 : timestamp;
+    if (typeof updateVocabularyCount === 'function') {
+        updateVocabularyCount();
+    }
+    if (typeof updatePhaseCountDisplay === 'function') {
+        updatePhaseCountDisplay();
+    }
+    if (typeof displayVocabulary === 'function') {
+        displayVocabulary();
+    }
 }
 
-function mergeProgressSnapshots(localProgress = {}, remoteProgress = {}) {
-    const normalizedLocal = getNormalizedProgress(localProgress);
-    const normalizedRemote = getNormalizedProgress(remoteProgress);
-    const merged = {};
-    const allKeys = Array.from(new Set([
-        ...Object.keys(normalizedLocal),
-        ...Object.keys(normalizedRemote)
-    ]));
-    allKeys.forEach((key) => {
-        const localEntry = normalizedLocal[key];
-        const remoteEntry = normalizedRemote[key];
-        if (!remoteEntry) {
-            merged[key] = localEntry;
-            return;
+// Check for newer data on page load (one-time check)
+async function checkAndSyncOnLoad(userId) {
+    console.log('🔍 Checking for newer data on page load...');
+    
+    try {
+        // Check progress data
+        const progressRef = ref(database, `users/${userId}/progress`);
+        const progressSnapshot = await get(progressRef);
+        
+        if (progressSnapshot.exists()) {
+            const remoteData = progressSnapshot.val() || {};
+            const remoteProgress = remoteData.progress || {};
+            const remoteTimestamp = remoteData.lastUpload || '1970-01-01T00:00:00.000Z';
+            
+            // Use the stale local timestamp from localStorage (loaded before Firebase init)
+            // This is the timestamp from when the data was last saved, NOT from current session
+            const localTimestamp = state._staleLocalUpdate || '1970-01-01T00:00:00.000Z';
+            const hasLocalProgress = Object.keys(state.learningProgress).length > 0;
+            
+            console.log('📊 Timestamp comparison:', {
+                local: localTimestamp,
+                remote: remoteTimestamp,
+                localNewer: localTimestamp > remoteTimestamp,
+                hasLocalProgress
+            });
+            
+            // Decision logic:
+            // 1. If remote is newer OR local has no timestamp -> accept remote
+            // 2. If local is newer AND has progress -> upload local
+            // 3. Otherwise -> already in sync
+            
+            if (remoteTimestamp > localTimestamp || !localTimestamp || localTimestamp === '1970-01-01T00:00:00.000Z') {
+                console.log('📥 Accepting data from Firebase (remote is newer or local is missing):', Object.keys(remoteProgress).length, 'items');
+                state.learningProgress = getNormalizedProgress(remoteProgress);
+                state.lastLocalUpdate = remoteTimestamp;
+                localStorage.setItem('vocabularyProgress', JSON.stringify(state.learningProgress));
+                localStorage.setItem('lastLocalUpdate', remoteTimestamp);
+                
+                // Clear the stale marker
+                delete state._staleLocalUpdate;
+                
+                // Update UI
+                updateProgressUI();
+            } else if (localTimestamp > remoteTimestamp && hasLocalProgress) {
+                console.log('📤 Local data is newer, uploading to Firebase...');
+                state.lastLocalUpdate = localTimestamp; // Use the local timestamp
+                delete state._staleLocalUpdate;
+                await uploadProgressToFirebase();
+            } else {
+                console.log('✅ Data is in sync');
+                state.lastLocalUpdate = localTimestamp;
+                delete state._staleLocalUpdate;
+            }
+        } else if (Object.keys(state.learningProgress).length > 0) {
+            // Firebase is empty but we have local progress - upload it
+            console.log('📤 Firebase empty, uploading local progress...');
+            const localTimestamp = state._staleLocalUpdate || new Date().toISOString();
+            state.lastLocalUpdate = localTimestamp;
+            delete state._staleLocalUpdate;
+            await uploadProgressToFirebase();
         }
-        if (!localEntry) {
-            merged[key] = remoteEntry;
-            return;
+        
+        // Check reset timestamp
+        const resetRef = ref(database, `users/${userId}/lastProgressReset`);
+        const resetSnapshot = await get(resetRef);
+        
+        if (resetSnapshot.exists()) {
+            const remoteResetTime = resetSnapshot.val();
+            const localResetTime = state.lastProgressReset || '1970-01-01T00:00:00.000Z';
+            
+            if (remoteResetTime > localResetTime) {
+                console.log('🗑️ Remote reset detected on load, clearing local progress');
+                state.learningProgress = {};
+                state.lastProgressReset = remoteResetTime;
+                state.lastLocalUpdate = null;
+                localStorage.removeItem('vocabularyProgress');
+                localStorage.removeItem('lastLocalUpdate');
+                localStorage.setItem('lastProgressReset', remoteResetTime);
+                delete state._staleLocalUpdate;
+                
+                updateProgressUI();
+            }
         }
-        const localTs = getProgressTimestamp(localEntry);
-        const remoteTs = getProgressTimestamp(remoteEntry);
-        if (localTs > remoteTs) {
-            merged[key] = localEntry;
-        } else if (remoteTs > localTs) {
-            merged[key] = remoteEntry;
-        } else if ((localEntry.correctCount || 0) >= (remoteEntry.correctCount || 0)) {
-            merged[key] = localEntry;
-        } else {
-            merged[key] = remoteEntry;
-        }
-    });
-    return {
-        merged,
-        normalizedLocal,
-        normalizedRemote
-    };
-}
-
-function areEntriesEqual(entryA = {}, entryB = {}) {
-    const keysA = Object.keys(entryA);
-    const keysB = Object.keys(entryB);
-    if (keysA.length !== keysB.length) {
-        return false;
+    } catch (error) {
+        console.error('❌ Error checking for newer data:', error);
     }
-    for (const key of keysA) {
-        if (!Object.prototype.hasOwnProperty.call(entryB, key)) {
-            return false;
-        }
-        if (entryA[key] !== entryB[key]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function areProgressMapsEqual(a = {}, b = {}) {
-    const aKeys = Object.keys(a);
-    const bKeys = Object.keys(b);
-    if (aKeys.length !== bKeys.length) {
-        return false;
-    }
-    for (const key of aKeys) {
-        if (!Object.prototype.hasOwnProperty.call(b, key)) {
-            return false;
-        }
-        if (!areEntriesEqual(a[key], b[key])) {
-            return false;
-        }
-    }
-    return true;
 }
 
 // Initialize Firebase real-time sync
-function initFirebaseSync() {
+async function initFirebaseSync() {
     const userId = getFirebaseUserId();
     
     if (!userId) {
@@ -123,7 +147,10 @@ function initFirebaseSync() {
     // Stop any existing listeners first
     stopFirebaseSync();
     
-    // Set up real-time listeners for lections and progress
+    // First, check for newer data on load (one-time check)
+    await checkAndSyncOnLoad(userId);
+    
+    // Then set up real-time listeners for ongoing sync
     setupLectionsListener(userId);
     setupProgressListener(userId);
     
@@ -231,15 +258,7 @@ function setupProgressListener(userId) {
                 localStorage.removeItem('vocabularyProgress');
                 localStorage.setItem('lastProgressReset', remoteResetTime);
                 
-                if (typeof updateStatistics === 'function') {
-                    updateStatistics();
-                }
-                if (typeof updateVocabularyCount === 'function') {
-                    updateVocabularyCount();
-                }
-                if (typeof displayVocabulary === 'function') {
-                    displayVocabulary();
-                }
+                updateProgressUI();
             }
         }
     });
@@ -273,12 +292,7 @@ function setupProgressListener(userId) {
             localStorage.setItem('vocabularyProgress', JSON.stringify(state.learningProgress));
             localStorage.setItem('lastLocalUpdate', remoteTimestamp);
             
-            if (typeof updateStatistics === 'function') {
-                updateStatistics();
-            }
-            if (typeof updateVocabularyCount === 'function') {
-                updateVocabularyCount();
-            }
+            updateProgressUI();
         } else {
             console.log('ℹ️ Progress in sync with Firebase');
         }
@@ -425,24 +439,6 @@ async function syncProgressToFirebase() {
     await uploadProgressToFirebase();
 }
 
-async function forceUploadProgressToFirebase(progressOverride) {
-    const userId = getFirebaseUserId();
-    if (!userId) {
-        console.log('⚠️ Not syncing progress: User not authenticated');
-        return;
-    }
-
-    try {
-        const progressRef = ref(database, `users/${userId}/progress`);
-        const payload = progressOverride ?? state.learningProgress ?? {};
-        await set(progressRef, payload);
-        console.log('✅ Progress force-uploaded to Firebase:', Object.keys(payload).length, 'items');
-        syncState.lastSyncTime = new Date();
-    } catch (error) {
-        console.error('❌ Error force-uploading progress to Firebase:', error);
-    }
-}
-
 async function deleteAllProgressFromFirebase() {
     const userId = getFirebaseUserId();
     if (!userId) {
@@ -554,12 +550,12 @@ function getTimeAgo(date) {
 // Expose functions globally for compatibility
 window.initFirebaseSync = initFirebaseSync;
 window.stopFirebaseSync = stopFirebaseSync;
+window.checkAndSyncOnLoad = checkAndSyncOnLoad;
 window.syncLectionToFirebase = syncLectionToFirebase;
 window.syncLectionOrderToFirebase = syncLectionOrderToFirebase;
 window.deleteLectionFromFirebase = deleteLectionFromFirebase;
 window.syncProgressToFirebase = syncProgressToFirebase;
 window.uploadProgressToFirebase = uploadProgressToFirebase;
-window.forceUploadProgressToFirebase = forceUploadProgressToFirebase;
 window.deleteAllProgressFromFirebase = deleteAllProgressFromFirebase;
 window.syncProgressResetToFirebase = syncProgressResetToFirebase;
 window.handleManualSync = handleManualSync;
