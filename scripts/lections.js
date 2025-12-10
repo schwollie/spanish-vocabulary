@@ -78,6 +78,7 @@ function updateVocabularies() {
         }
     }
 
+    savePreferences(); // Save selected lections
     updateVocabularyCount();
     resetCard();
 }
@@ -85,25 +86,27 @@ function updateVocabularies() {
 // Update vocabulary count display
 function updateVocabularyCount() {
     const countElement = document.getElementById('vocabCount');
+    const totalLoaded = state.vocabularies.length;
     
     if (state.selectionMode === 'spaced') {
-        // Show remaining vocabularies in session pool
+        // Show total loaded + due for review in current direction
+        const currentDirection = state.mode === 'random' ? 'spanishToGerman' : state.mode;
+        const dueCount = getDueVocabulariesCount(currentDirection);
         const remainingInSession = getSessionPoolCount();
-        const totalDue = getDueVocabulariesCount();
         
         if (remainingInSession > 0) {
-            countElement.textContent = `${remainingInSession} remaining | ${totalDue} total due for review`;
+            countElement.textContent = `${totalLoaded} loaded | ${dueCount} due for review | ${remainingInSession} remaining`;
         } else {
-            countElement.textContent = `${totalDue} vocabularies due for review`;
+            countElement.textContent = `${totalLoaded} loaded | ${dueCount} due for review`;
         }
     } else {
-        // Show remaining vocabularies in session pool
+        // Random mode: just show total loaded
         const remainingInSession = getSessionPoolCount();
         
-        if (remainingInSession > 0 && remainingInSession < state.vocabularies.length) {
-            countElement.textContent = `${remainingInSession} remaining | ${state.vocabularies.length} total`;
+        if (remainingInSession > 0 && remainingInSession < totalLoaded) {
+            countElement.textContent = `${totalLoaded} loaded | ${remainingInSession} remaining`;
         } else {
-            countElement.textContent = `${state.vocabularies.length} vocabularies loaded`;
+            countElement.textContent = `${totalLoaded} vocabularies loaded`;
         }
     }
 }

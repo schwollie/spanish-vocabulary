@@ -9,15 +9,17 @@ const state = {
     vocabularies: [],
     currentVocab: null,
     mode: 'spanishToGerman', // 'spanishToGerman', 'germanToSpanish', 'random'
-    selectionMode: 'random',
+    selectionMode: 'spaced', // Default to spaced repetition
     showingAnswer: false,
-    learningProgress: {} // vocabulary key -> { correctCount, lastCorrect, lastWrong }
+    learningProgress: {} // vocabulary key -> { correctCount, lastCorrect, lastWrong, nextReviewDate }
 };
 
 // Initialize the app
 async function init() {
     loadLearningProgress(); // Load progress from localStorage first
+    loadSavedPreferences(); // Load saved mode and lection selection
     await loadLections();
+    restoreLectionSelection(); // Restore previously selected lections
     initSpeech(); // Initialize speech synthesis
     setupEventListeners();
     setupSpeechListeners(); // Setup speech event listeners
@@ -66,6 +68,7 @@ function setupEventListeners() {
     document.querySelectorAll('input[name="selectionMode"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
             state.selectionMode = e.target.value;
+            savePreferences(); // Save to localStorage
             updateVocabularies(); // Refresh to apply new mode
             updateStatistics(); // Update statistics
         });
@@ -99,3 +102,81 @@ function setupEventListeners() {
 
 // Start the app when page loads
 document.addEventListener('DOMContentLoaded', init);
+
+// ============================================
+// PREFERENCE MANAGEMENT - Save/Load User Preferences
+// ============================================
+
+function savePreferences() {
+    const preferences = {
+        mode: state.mode,
+        selectionMode: state.selectionMode,
+        selectedLections: Array.from(state.selectedLections)
+    };
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+}
+
+function loadSavedPreferences() {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+        try {
+            const preferences = JSON.parse(saved);
+            state.mode = preferences.mode || 'spanishToGerman';
+            state.selectionMode = preferences.selectionMode || 'spaced';
+            // selectedLections will be restored after lections are loaded
+        } catch (e) {
+            console.error('Error loading preferences:', e);
+        }
+    }
+    
+    // Update UI to reflect loaded preferences
+    updateModeUI();
+    updateSelectionModeUI();
+}
+
+function restoreLectionSelection() {
+    const saved = localStorage.getItem('userPreferences');
+    if (saved) {
+        try {
+            const preferences = JSON.parse(saved);
+            if (preferences.selectedLections && Array.isArray(preferences.selectedLections)) {
+                // Restore selection, but validate lections still exist
+                preferences.selectedLections.forEach(num => {
+                    const lection = state.lections.find(l => l.number === num);
+                    if (lection) {
+                        state.selectedLections.add(num);
+                        const checkbox = document.getElementById(`lection-${num}`);
+                        if (checkbox) checkbox.checked = true;
+                    }
+                });
+                
+                // Update vocabularies with restored selection
+                if (state.selectedLections.size > 0) {
+                    updateVocabularies();
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring lection selection:', e);
+        }
+    }
+}
+
+function updateModeUI() {
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (state.mode === 'spanishToGerman') {
+        document.getElementById('spanishToGerman').classList.add('active');
+    } else if (state.mode === 'germanToSpanish') {
+        document.getElementById('germanToSpanish').classList.add('active');
+    } else {
+        document.getElementById('randomMode').classList.add('active');
+    }
+}
+
+function updateSelectionModeUI() {
+    document.querySelectorAll('input[name="selectionMode"]').forEach(radio => {
+        radio.checked = (radio.value === state.selectionMode);
+    });
+}

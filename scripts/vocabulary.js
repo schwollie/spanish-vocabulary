@@ -28,10 +28,16 @@ function setMode(mode) {
         document.getElementById('randomMode').classList.add('active');
     }
 
-    // If already showing a vocabulary, update the display
-    if (state.currentVocab) {
-        displayVocabulary();
-    }
+    // Save preference
+    savePreferences();
+    
+    // Reload session pool for new direction (recount due vocabularies)
+    sessionPool = [];
+    initializeSessionPool();
+    updateVocabularyCount();
+    
+    // Reset card to show new direction
+    resetCard();
 }
 
 // Initialize session pool with due vocabularies
@@ -43,8 +49,11 @@ function initializeSessionPool() {
 
     // Filter based on selection mode
     if (state.selectionMode === 'spaced') {
-        sessionPool = state.vocabularies.filter(vocab => isVocabularyDue(vocab));
+        // In spaced mode: only include vocabularies due for review in current direction
+        const currentDirection = state.mode === 'random' ? 'spanishToGerman' : state.mode;
+        sessionPool = state.vocabularies.filter(vocab => isVocabularyDue(vocab, currentDirection));
     } else {
+        // In random mode: all vocabularies from selected lections (no tracking)
         sessionPool = [...state.vocabularies];
     }
 }
@@ -132,13 +141,18 @@ function displayVocabulary() {
         answerText.textContent = state.currentVocab.spanish;
     }
 
-    // Show progress badge if vocabulary has been answered correctly before
-    const progress = getVocabProgress(state.currentVocab);
-    if (progress.correctCount > 0) {
-        progressCount.textContent = `Phase ${progress.correctCount}`;
-        progressBadge.style.display = 'flex';
-        progressBadge.title = `Phase ${progress.correctCount} - Next review: ${getIntervalForPhase(progress.correctCount)} days`;
+    // Show progress badge if vocabulary has been answered correctly before (in current direction)
+    if (state.selectionMode === 'spaced') {
+        const progress = getVocabProgress(state.currentVocab, state.currentDirection);
+        if (progress.correctCount > 0) {
+            progressCount.textContent = `Phase ${progress.correctCount}`;
+            progressBadge.style.display = 'flex';
+            progressBadge.title = `Phase ${progress.correctCount} - Next review: ${getIntervalForPhase(progress.correctCount)} days`;
+        } else {
+            progressBadge.style.display = 'none';
+        }
     } else {
+        // No progress tracking in random mode
         progressBadge.style.display = 'none';
     }
 

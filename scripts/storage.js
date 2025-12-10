@@ -22,9 +22,10 @@ function getIntervalForPhase(phase) {
 }
 
 // Learning progress functions
-function getVocabKey(vocab) {
-    // Create a unique key for the vocabulary
-    return `${vocab.spanish}||${vocab.german}`;
+function getVocabKey(vocab, direction) {
+    // Create a unique key for the vocabulary including direction
+    // Direction-specific: ES→DE and DE→ES tracked separately
+    return `${vocab.spanish}||${vocab.german}||${direction}`;
 }
 
 function loadLearningProgress() {
@@ -61,8 +62,8 @@ function saveLearningProgress() {
     }
 }
 
-function getVocabProgress(vocab) {
-    const key = getVocabKey(vocab);
+function getVocabProgress(vocab, direction) {
+    const key = getVocabKey(vocab, direction);
     return state.learningProgress[key] || {
         correctCount: 0,
         lastCorrect: null,
@@ -71,8 +72,8 @@ function getVocabProgress(vocab) {
     };
 }
 
-function updateVocabProgress(vocab, isCorrect) {
-    const key = getVocabKey(vocab);
+function updateVocabProgress(vocab, isCorrect, direction) {
+    const key = getVocabKey(vocab, direction);
     const now = new Date();
     
     if (!state.learningProgress[key]) {
@@ -276,8 +277,8 @@ function importProgressOnly() {
 }
 
 // Check if a vocabulary is due for review
-function isVocabularyDue(vocab) {
-    const progress = getVocabProgress(vocab);
+function isVocabularyDue(vocab, direction) {
+    const progress = getVocabProgress(vocab, direction);
     
     // If vocabulary has never been reviewed, it's always due
     if (progress.correctCount === 0 && !progress.nextReviewDate) {
@@ -319,16 +320,17 @@ function skipOneDay() {
     alert(`Advanced ${updatedCount} vocabularies by 1 day.`);
 }
 
-// Get count of vocabularies due for review
-function getDueVocabulariesCount() {
+// Get count of vocabularies due for review in current direction
+function getDueVocabulariesCount(direction) {
     if (!state.vocabularies || state.vocabularies.length === 0) {
         return 0;
     }
     
     // Only calculate due count in spaced repetition mode
     if (state.selectionMode !== 'spaced') {
-        return state.vocabularies.length;
+        return 0; // Not applicable in random mode
     }
     
-    return state.vocabularies.filter(vocab => isVocabularyDue(vocab)).length;
+    // Count vocabularies that are due in the specified direction
+    return state.vocabularies.filter(vocab => isVocabularyDue(vocab, direction)).length;
 }
