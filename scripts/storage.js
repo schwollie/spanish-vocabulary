@@ -74,12 +74,22 @@ function loadLearningProgress() {
     if (lastReset) {
         state.lastProgressReset = lastReset;
     }
+    
+    // Load last local update timestamp
+    const lastUpdate = localStorage.getItem('lastLocalUpdate');
+    if (lastUpdate) {
+        state.lastLocalUpdate = lastUpdate;
+    }
 }
 
 function saveLearningProgress() {
     try {
+        const now = new Date().toISOString();
+        state.lastLocalUpdate = now;
+        
         const progressData = JSON.stringify(state.learningProgress);
         localStorage.setItem('vocabularyProgress', progressData);
+        localStorage.setItem('lastLocalUpdate', now);
         
         // Sync to Firebase if authenticated (async, don't wait)
         setTimeout(() => {
@@ -151,6 +161,9 @@ function updateStatistics() {
     
     document.getElementById('totalLearned').textContent = totalLearned;
     document.getElementById('totalReviews').textContent = totalReviews;
+    
+    // Update phase counts
+    updatePhaseCountDisplay();
 }
 
 function resetLearningProgress() {
@@ -380,4 +393,47 @@ function getDueVocabulariesCount(direction) {
     
     // Count vocabularies that are due in the specified direction
     return state.vocabularies.filter(vocab => isVocabularyDue(vocab, direction)).length;
+}
+
+// Get count of vocabularies per phase for current direction
+function getVocabulariesByPhase(direction) {
+    if (!state.vocabularies || state.vocabularies.length === 0) {
+        return {};
+    }
+    
+    const phaseCounts = {};
+    for (let i = 0; i <= 9; i++) {
+        phaseCounts[i] = 0;
+    }
+    
+    state.vocabularies.forEach(vocab => {
+        const progress = getVocabProgress(vocab, direction);
+        const phase = Math.min(progress.correctCount, 9); // Cap at phase 9+
+        phaseCounts[phase]++;
+    });
+    
+    return phaseCounts;
+}
+
+// Update phase count display
+function updatePhaseCountDisplay() {
+    if (state.selectionMode !== 'spaced') {
+        // Hide counts in non-spaced modes
+        for (let i = 0; i <= 9; i++) {
+            const countEl = document.getElementById(`phase-count-${i}`);
+            if (countEl) countEl.style.display = 'none';
+        }
+        return;
+    }
+    
+    const currentDirection = state.mode === 'random' ? 'spanishToGerman' : state.mode;
+    const phaseCounts = getVocabulariesByPhase(currentDirection);
+    
+    for (let i = 0; i <= 9; i++) {
+        const countEl = document.getElementById(`phase-count-${i}`);
+        if (countEl) {
+            countEl.textContent = phaseCounts[i] || 0;
+            countEl.style.display = 'inline';
+        }
+    }
 }

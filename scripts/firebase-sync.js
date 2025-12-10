@@ -244,40 +244,43 @@ function setupProgressListener(userId) {
         }
     });
     
-    syncListeners.progress = onValue(progressRef, (snapshot) => {
+    syncListeners.progress = onValue(progressRef, async (snapshot) => {
         if (!snapshot.exists()) {
             console.log('📭 No progress in Firebase');
             
             // If Firebase is empty but we have local progress, upload it
             if (state.learningProgress && Object.keys(state.learningProgress).length > 0) {
                 console.log('📤 Uploading local progress to Firebase...');
-                syncProgressToFirebase();
+                await uploadProgressToFirebase();
             }
             return;
         }
         
-        const rawProgress = snapshot.val() || {};
-        const { merged, normalizedLocal } = mergeProgressSnapshots(state.learningProgress || {}, rawProgress);
-        const differsFromLocal = !areProgressMapsEqual(merged, normalizedLocal);
-        const differsFromRemote = !areProgressMapsEqual(merged, rawProgress);
+        const remoteData = snapshot.val() || {};
+        const remoteProgress = remoteData.progress || {};
+        const remoteTimestamp = remoteData.lastUpload || '1970-01-01T00:00:00.000Z';
+        const localTimestamp = state.lastLocalUpdate || '1970-01-01T00:00:00.000Z';
         
-        state.learningProgress = merged;
-        
-        if (differsFromLocal) {
-            localStorage.setItem('vocabularyProgress', JSON.stringify(merged));
+        // If local changes are newer than last upload, upload to Firebase
+        if (localTimestamp > remoteTimestamp) {
+            console.log('📤 Local changes detected, uploading to Firebase...');
+            await uploadProgressToFirebase();
+        } else if (remoteTimestamp > localTimestamp) {
+            // Firebase is newer, accept remote data
+            console.log('📥 Accepting newer data from Firebase:', Object.keys(remoteProgress).length, 'items');
+            state.learningProgress = getNormalizedProgress(remoteProgress);
+            state.lastLocalUpdate = remoteTimestamp;
+            localStorage.setItem('vocabularyProgress', JSON.stringify(state.learningProgress));
+            localStorage.setItem('lastLocalUpdate', remoteTimestamp);
+            
             if (typeof updateStatistics === 'function') {
                 updateStatistics();
             }
             if (typeof updateVocabularyCount === 'function') {
                 updateVocabularyCount();
             }
-        }
-        
-        if (differsFromRemote) {
-            console.log('📤 Local progress newer than Firebase, syncing merged data back...');
-            syncProgressToFirebase();
         } else {
-            console.log('📥 Progress merged from Firebase:', Object.keys(rawProgress).length, 'items');
+            console.log('ℹ️ Progress in sync with Firebase');
         }
         
         syncState.lastSyncTime = new Date();
@@ -388,8 +391,8 @@ async function syncAllLectionsToFirebase() {
     }
 }
 
-// Sync progress to Firebase
-async function syncProgressToFirebase() {
+// Upload progress to Firebase with timestamp
+async function uploadProgressToFirebase() {
     const userId = getFirebaseUserId();
     
     if (!userId) {
@@ -398,37 +401,28 @@ async function syncProgressToFirebase() {
     }
     
     try {
+        const now = new Date().toISOString();
         const progressRef = ref(database, `users/${userId}/progress`);
-        const snapshot = await get(progressRef);
-        const rawRemote = snapshot.exists() ? snapshot.val() : {};
-        const { merged, normalizedLocal } = mergeProgressSnapshots(state.learningProgress || {}, rawRemote);
-        const differsFromLocal = !areProgressMapsEqual(merged, normalizedLocal);
-        const differsFromRemote = !areProgressMapsEqual(merged, rawRemote);
         
-        state.learningProgress = merged;
+        await set(progressRef, {
+            progress: state.learningProgress || {},
+            lastUpload: now
+        });
         
-        if (differsFromLocal) {
-            localStorage.setItem('vocabularyProgress', JSON.stringify(merged));
-            if (typeof updateStatistics === 'function') {
-                updateStatistics();
-            }
-            if (typeof updateVocabularyCount === 'function') {
-                updateVocabularyCount();
-            }
-        }
+        state.lastLocalUpdate = now;
+        localStorage.setItem('lastLocalUpdate', now);
         
-        if (differsFromRemote) {
-            await set(progressRef, merged);
-            console.log('✅ Progress synced to Firebase:', Object.keys(merged).length, 'items (merged)');
-        } else {
-            console.log('ℹ️ Progress already up to date with Firebase');
-        }
-        
+        console.log('✅ Progress uploaded to Firebase:', Object.keys(state.learningProgress || {}).length, 'items');
         syncState.lastSyncTime = new Date();
         
     } catch (error) {
-        console.error('❌ Error syncing progress to Firebase:', error);
+        console.error('❌ Error uploading progress to Firebase:', error);
     }
+}
+
+// Legacy function for compatibility
+async function syncProgressToFirebase() {
+    await uploadProgressToFirebase();
 }
 
 async function forceUploadProgressToFirebase(progressOverride) {
@@ -564,6 +558,7 @@ window.syncLectionToFirebase = syncLectionToFirebase;
 window.syncLectionOrderToFirebase = syncLectionOrderToFirebase;
 window.deleteLectionFromFirebase = deleteLectionFromFirebase;
 window.syncProgressToFirebase = syncProgressToFirebase;
+window.uploadProgressToFirebase = uploadProgressToFirebase;
 window.forceUploadProgressToFirebase = forceUploadProgressToFirebase;
 window.deleteAllProgressFromFirebase = deleteAllProgressFromFirebase;
 window.syncProgressResetToFirebase = syncProgressResetToFirebase;

@@ -12,7 +12,8 @@ const state = {
     selectionMode: 'spaced', // Default to spaced repetition
     showingAnswer: false,
     learningProgress: {}, // vocabulary key -> { correctCount, lastCorrect, lastWrong, nextReviewDate, lastUpdated }
-    lastProgressReset: null // ISO timestamp of last progress reset
+    lastProgressReset: null, // ISO timestamp of last progress reset
+    lastLocalUpdate: null // ISO timestamp of last local progress change
 };
 
 // Initialize the app

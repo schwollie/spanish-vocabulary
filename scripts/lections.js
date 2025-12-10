@@ -82,6 +82,7 @@ function updateVocabularies() {
 
     savePreferences(); // Save selected lections
     updateVocabularyCount();
+    updatePhaseCountDisplay();
     resetCard();
 }
 

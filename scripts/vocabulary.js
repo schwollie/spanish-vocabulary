@@ -35,6 +35,7 @@ function setMode(mode) {
     sessionPool = [];
     initializeSessionPool();
     updateVocabularyCount();
+    updatePhaseCountDisplay();
     
     // Reset card to show new direction
     resetCard();

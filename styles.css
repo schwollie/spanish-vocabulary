@@ -553,11 +553,24 @@ input:checked + .slider:before {
 .phase-number {
     font-weight: 600;
     color: #0369a1;
+    min-width: 70px;
 }
 
 .phase-interval {
     color: #64748b;
     font-weight: 500;
+    flex: 1;
+}
+
+.phase-count {
+    font-weight: 700;
+    color: #667eea;
+    background: #e0e7ff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    min-width: 30px;
+    text-align: center;
+    font-size: 0.9em;
 }
 
 /* Progress Stats */
