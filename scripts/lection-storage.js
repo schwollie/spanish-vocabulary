@@ -147,3 +147,64 @@ function initializeDefaultLections(skipIfSignedIn = false) {
     
     return false; // Already had lections
 }
+
+// ============================================
+// COMMON WORDS LECTIONS - Read-only Default Lections
+// ============================================
+
+// List of all commonWords files
+const COMMON_WORDS_FILES = [
+    '1-100.txt',
+    '101-200.txt',
+    '201-300.txt',
+    '301-400.txt',
+    '401-500.txt',
+    '501-600.txt',
+    '601-700.txt',
+    '701-800.txt',
+    '801-900.txt',
+    '901-1000.txt',
+    '1001-1100.txt',
+    '1101-1200.txt',
+    '1201-1300.txt',
+    '1301-1400.txt',
+    '1401-1500.txt',
+    '1501-1600.txt'
+];
+
+// Load all commonWords lections from text files
+async function loadCommonWordsLections() {
+    const lections = [];
+    
+    for (let i = 0; i < COMMON_WORDS_FILES.length; i++) {
+        const filename = COMMON_WORDS_FILES[i];
+        const cwNumber = i + 1;
+        const range = filename.replace('.txt', '');
+        
+        try {
+            const response = await fetch(`commonWords/${filename}`);
+            if (!response.ok) {
+                console.warn(`Failed to load ${filename}`);
+                continue;
+            }
+            
+            const content = await response.text();
+            const vocabularies = parseVocabularyContent(content);
+            
+            if (vocabularies.length > 0) {
+                lections.push({
+                    id: `commonWords_${range}`,
+                    name: `CW${cwNumber}: ${range}`,
+                    vocabularies: vocabularies,
+                    isCommonWord: true,
+                    range: range,
+                    cwNumber: cwNumber
+                });
+            }
+        } catch (error) {
+            console.error(`Error loading ${filename}:`, error);
+        }
+    }
+    
+    return lections;
+}

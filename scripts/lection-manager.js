@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     initializeDefaultLections();
-    displayLections();
+    await displayLections();
     
     // Setup import default lections button
     const importDefaultBtn = document.getElementById('importDefaultLectionsBtn');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // Display all lections
-function displayLections() {
+async function displayLections() {
     const lectionsList = document.getElementById('lectionsList');
     const lections = getAllLections();
     
@@ -38,47 +38,90 @@ function displayLections() {
                 <p>No lections yet. Add your first lection above!</p>
             </div>
         `;
-        return;
+    } else {
+        lectionsList.innerHTML = '';
+        
+        lections.forEach((lection, index) => {
+            const card = createLectionCard(lection, index, false);
+            lectionsList.appendChild(card);
+        });
     }
     
-    lectionsList.innerHTML = '';
+    // Add separator for commonWords section
+    const separator = document.createElement('div');
+    separator.className = 'lection-separator';
+    separator.innerHTML = '<h2>Common Spanish Words (Read-Only)</h2>';
+    lectionsList.appendChild(separator);
     
-    lections.forEach((lection, index) => {
-        const card = createLectionCard(lection, index);
-        lectionsList.appendChild(card);
-    });
+    // Load and display commonWords lections
+    const commonWordsLections = await loadCommonWordsLections();
+    
+    if (commonWordsLections.length === 0) {
+        const emptyMsg = document.createElement('p');
+        emptyMsg.style.textAlign = 'center';
+        emptyMsg.style.color = '#666';
+        emptyMsg.textContent = 'No common words available.';
+        lectionsList.appendChild(emptyMsg);
+    } else {
+        commonWordsLections.forEach((lection) => {
+            const card = createLectionCard(lection, null, true);
+            lectionsList.appendChild(card);
+        });
+    }
 }
 
 // Create a lection card element
-function createLectionCard(lection, index) {
+function createLectionCard(lection, index, isReadOnly = false) {
     const div = document.createElement('div');
-    div.className = 'lection-card';
-    div.draggable = true;
+    div.className = isReadOnly ? 'lection-card read-only-card' : 'lection-card';
+    div.draggable = !isReadOnly; // Disable dragging for read-only cards
     div.dataset.lectionId = lection.id;
     
-    // Drag and drop event listeners
-    div.addEventListener('dragstart', handleDragStart);
-    div.addEventListener('dragend', handleDragEnd);
-    div.addEventListener('dragover', handleDragOver);
-    div.addEventListener('drop', handleDrop);
-    div.addEventListener('dragleave', handleDragLeave);
+    // Only add drag and drop event listeners for non-read-only cards
+    if (!isReadOnly) {
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragend', handleDragEnd);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragleave', handleDragLeave);
+    }
     
-    div.innerHTML = `
-        <div class="lection-header">
-            <div class="lection-title">
-                <span class="lection-number">${index}</span>
-                <span class="lection-name">${lection.name}</span>
+    // For read-only cards, show CW name directly without index number
+    const displayName = isReadOnly ? lection.name : `${index}`;
+    const lectionName = isReadOnly ? `(${lection.vocabularies.length} words)` : lection.name;
+    
+    if (isReadOnly) {
+        // Read-only card: no edit/delete buttons
+        div.innerHTML = `
+            <div class="lection-header">
+                <div class="lection-title">
+                    <span class="lection-number">${displayName}</span>
+                    <span class="lection-name">${lectionName}</span>
+                </div>
             </div>
-            <div class="lection-actions">
-                <button class="drag-handle" title="Drag to reorder">⋮⋮</button>
-                <button class="btn-edit" onclick="editLection('${lection.id}')">✏️ Edit</button>
-                <button class="btn-delete" onclick="deleteLection('${lection.id}')">🗑️ Delete</button>
+            <div class="lection-vocab-count">
+                ${lection.vocabularies.length} vocabularies
             </div>
-        </div>
-        <div class="lection-vocab-count">
-            ${lection.vocabularies.length} vocabularies
-        </div>
-    `;
+        `;
+    } else {
+        // Regular card: with edit/delete buttons
+        div.innerHTML = `
+            <div class="lection-header">
+                <div class="lection-title">
+                    <span class="lection-number">${displayName}</span>
+                    <span class="lection-name">${lectionName}</span>
+                </div>
+                <div class="lection-actions">
+                    <button class="drag-handle" title="Drag to reorder">⋮⋮</button>
+                    <button class="btn-edit" onclick="editLection('${lection.id}')">✏️ Edit</button>
+                    <button class="btn-delete" onclick="deleteLection('${lection.id}')">🗑️ Delete</button>
+                </div>
+            </div>
+            <div class="lection-vocab-count">
+                ${lection.vocabularies.length} vocabularies
+            </div>
+        `;
+    }
     
     return div;
 }

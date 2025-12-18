@@ -357,6 +357,12 @@ async function syncLectionToFirebase(lection) {
         return;
     }
     
+    // Don't sync commonWords lections to Firebase
+    if (lection.isCommonWord || (lection.id && lection.id.startsWith('commonWords_'))) {
+        console.log('⏭️ Skipping commonWords lection sync:', lection.name);
+        return;
+    }
+    
     try {
         updateSyncStatusUI('syncing');
         
@@ -436,8 +442,13 @@ async function syncAllLectionsToFirebase() {
         const lections = getAllLections();
         const order = getLectionOrder();
         
-        // Upload all lections
+        // Upload all lections (excluding commonWords)
         for (const lection of lections) {
+            // Skip commonWords lections
+            if (lection.isCommonWord || (lection.id && lection.id.startsWith('commonWords_'))) {
+                continue;
+            }
+            
             const lectionRef = ref(database, `users/${userId}/lections/${lection.id}`);
             await set(lectionRef, lection);
         }

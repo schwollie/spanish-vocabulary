@@ -27,6 +27,7 @@ async function init() {
     setupSpeechListeners(); // Setup speech event listeners
     updateVocabularyCount();
     updateStatistics(); // Update statistics display
+    updateForecastDisplay(); // Update 14-day forecast
     
     // Initialize Firebase Authentication
     try {
@@ -34,6 +35,45 @@ async function init() {
         console.log('✅ Firebase initialized successfully');
     } catch (error) {
         console.error('Failed to initialize Firebase:', error);
+    }
+}
+
+// Update 14-day vocabulary forecast display
+function updateForecastDisplay() {
+    const forecastChart = document.getElementById('forecastChart');
+    if (!forecastChart) return;
+    
+    const forecast = getVocabularyForecast();
+    const maxCount = Math.max(...forecast, 1);
+    
+    forecastChart.innerHTML = '';
+    
+    for (let day = 1; day <= 14; day++) {
+        const count = forecast[day - 1];
+        const heightPercent = maxCount > 0 ? (count / maxCount) * 100 : 0;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'forecast-bar-wrapper';
+        
+        const bar = document.createElement('div');
+        bar.className = 'forecast-bar';
+        bar.style.height = `${Math.max(heightPercent, 2)}%`;
+        bar.title = `Day ${day}: ${count} vocabularies due`;
+        
+        if (count > 0) {
+            const countLabel = document.createElement('span');
+            countLabel.className = 'forecast-bar-count';
+            countLabel.textContent = count;
+            bar.appendChild(countLabel);
+        }
+        
+        const label = document.createElement('div');
+        label.className = 'forecast-bar-label';
+        label.textContent = `${day}`;
+        
+        wrapper.appendChild(bar);
+        wrapper.appendChild(label);
+        forecastChart.appendChild(wrapper);
     }
 }
 

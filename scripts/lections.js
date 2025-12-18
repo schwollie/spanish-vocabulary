@@ -22,7 +22,8 @@ async function loadLections() {
             number: index,
             name: lection.name,
             id: lection.id,
-            vocabularies: lection.vocabularies
+            vocabularies: lection.vocabularies,
+            isCommonWord: false
         };
         
         state.lections.push(stateLection);
@@ -31,12 +32,37 @@ async function loadLections() {
 
     // Sort lections by number (already in order from localStorage)
     state.lections.sort((a, b) => a.number - b.number);
+    
+    // Add separator for commonWords section
+    const separator = document.createElement('div');
+    separator.className = 'lection-separator';
+    separator.innerHTML = '<h3>Common Spanish Words (Read-Only)</h3>';
+    lectionList.appendChild(separator);
+    
+    // Load and add commonWords lections
+    const commonWordsLections = await loadCommonWordsLections();
+    const userLectionsCount = state.lections.length;
+    
+    commonWordsLections.forEach((lection, index) => {
+        const stateLection = {
+            number: userLectionsCount + index,
+            name: lection.name,
+            id: lection.id,
+            vocabularies: lection.vocabularies,
+            isCommonWord: true,
+            cwNumber: lection.cwNumber,
+            range: lection.range
+        };
+        
+        state.lections.push(stateLection);
+        createLectionCheckbox(stateLection, lectionList);
+    });
 }
 
 // Create checkbox for lection
 function createLectionCheckbox(lection, container) {
     const div = document.createElement('div');
-    div.className = 'lection-item';
+    div.className = lection.isCommonWord ? 'lection-item common-word-item' : 'lection-item';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -53,7 +79,13 @@ function createLectionCheckbox(lection, container) {
 
     const label = document.createElement('label');
     label.htmlFor = `lection-${lection.number}`;
-    label.textContent = `${lection.number} - ${lection.name}`;
+    
+    // Show CW number for commonWords, regular number for user lections
+    if (lection.isCommonWord) {
+        label.textContent = `${lection.name} (${lection.vocabularies.length} words)`;
+    } else {
+        label.textContent = `${lection.number} - ${lection.name}`;
+    }
 
     const selectUpToBtn = document.createElement('button');
     selectUpToBtn.className = 'select-up-to-btn';
@@ -66,7 +98,12 @@ function createLectionCheckbox(lection, container) {
 
     div.appendChild(checkbox);
     div.appendChild(label);
-    div.appendChild(selectUpToBtn);
+    
+    // Only add select-up-to button for user lections
+    if (!lection.isCommonWord) {
+        div.appendChild(selectUpToBtn);
+    }
+
     container.appendChild(div);
 }
 
@@ -83,6 +120,12 @@ function updateVocabularies() {
     savePreferences(); // Save selected lections
     updateVocabularyCount();
     updatePhaseCountDisplay();
+    
+    // Update forecast display when vocabularies change
+    if (typeof updateForecastDisplay === 'function') {
+        updateForecastDisplay();
+    }
+    
     resetCard();
 }
 

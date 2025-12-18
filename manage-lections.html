@@ -152,6 +152,18 @@
             border-color: #667eea;
         }
 
+        /* Read-only card styling for commonWords */
+        .read-only-card {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            cursor: default;
+        }
+
+        .read-only-card:hover {
+            background: #fde68a;
+            border-color: #e5e7eb;
+        }
+
         .lection-card.dragging {
             opacity: 0.5;
             transform: scale(0.98);
@@ -161,6 +173,20 @@
             border-color: #667eea;
             border-style: dashed;
             background: #eef2ff;
+        }
+        
+        /* Lection separator */
+        .lection-separator {
+            margin: 30px 0 20px 0;
+            padding-top: 20px;
+            border-top: 2px solid #d1d5db;
+            text-align: center;
+        }
+        
+        .lection-separator h2 {
+            color: #6b7280;
+            font-size: 1.3em;
+            font-weight: 600;
         }
 
         .lection-header {

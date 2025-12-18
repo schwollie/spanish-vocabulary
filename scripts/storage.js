@@ -166,6 +166,11 @@ function updateStatistics() {
     
     // Update phase counts
     updatePhaseCountDisplay();
+    
+    // Update forecast display
+    if (typeof updateForecastDisplay === 'function') {
+        updateForecastDisplay();
+    }
 }
 
 function resetLearningProgress() {
@@ -446,4 +451,37 @@ function updatePhaseCountDisplay() {
             countEl.style.display = 'inline';
         }
     }
+}
+
+// Get vocabulary forecast for next 14 days
+function getVocabularyForecast() {
+    const forecast = new Array(14).fill(0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Count vocabularies due for each day
+    for (const vocab of state.vocabularies) {
+        // Check both directions
+        for (const direction of ['spanishToGerman', 'germanToSpanish']) {
+            const progress = getVocabProgress(vocab, direction);
+            
+            if (progress.nextReviewDate) {
+                const reviewDate = new Date(progress.nextReviewDate);
+                reviewDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = reviewDate - today;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                // Count if it's within next 14 days (days 1-14)
+                if (diffDays >= 1 && diffDays <= 14) {
+                    forecast[diffDays - 1]++;
+                }
+            } else if (progress.correctCount === 0) {
+                // New vocabularies count for day 1
+                forecast[0]++;
+            }
+        }
+    }
+    
+    return forecast;
 }

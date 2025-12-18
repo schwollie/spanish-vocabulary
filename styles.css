@@ -844,6 +844,22 @@ input:checked + .slider:before {
     font-size: 1.1em;
 }
 
+/* Lection separator for commonWords section */
+.lection-separator {
+    margin: 25px 0 15px 0;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.lection-separator h3,
+.lection-separator h2 {
+    color: #666;
+    font-size: 1.1em;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
 .lection-item {
     display: flex;
     align-items: center;
@@ -858,8 +874,14 @@ input:checked + .slider:before {
     background: #f3f4f6;
 }
 
-.lection-item input[type="checkbox"] {
-    cursor: pointer;
+/* CommonWords lection items styling */
+.common-word-item {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+}
+
+.common-word-item:hover {
+    background: #fde68a;
 }
 
 .lection-item label {
@@ -867,4 +889,95 @@ input:checked + .slider:before {
     cursor: pointer;
     font-size: 0.9em;
     color: #333;
+}
+
+/* 14-Day Forecast Section */
+.forecast-section {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.forecast-section h2 {
+    color: #333;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.forecast-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 8px;
+    height: 250px;
+    padding: 20px 10px;
+    border-bottom: 2px solid #e5e7eb;
+    position: relative;
+}
+
+.forecast-bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 30px;
+    max-width: 80px;
+}
+
+.forecast-bar {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    min-height: 5px;
+}
+
+.forecast-bar:hover {
+    background: linear-gradient(135deg, #7c8df0, #8a5bb0);
+    transform: translateY(-2px);
+}
+
+.forecast-bar-count {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.forecast-bar-label {
+    font-size: 0.75em;
+    color: #666;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .forecast-chart {
+        gap: 4px;
+        padding: 20px 5px;
+    }
+    
+    .forecast-bar-wrapper {
+        min-width: 20px;
+        max-width: 50px;
+    }
+    
+    .forecast-bar-label {
+        font-size: 0.65em;
+    }
+    
+    .forecast-bar-count {
+        font-size: 0.75em;
+    }
 }
